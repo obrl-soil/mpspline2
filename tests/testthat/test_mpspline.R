@@ -74,3 +74,37 @@ test_that("mpspline_datchk does what it oughta",
                                          stringsAsFactors = FALSE)),
             expect_error(mpspline_datchk(ols))
           ))
+
+test_that("mpspline_est1 does the thing",
+          c(
+            # normal
+            s <- data.frame("SID" = "A",
+                            "UD"  = c(0,10,20,30),
+                            "LD"  = c(10,20,30,40),
+                            "VAL" = c(5.4, 5.3, 5.6, 7.0),
+                            stringsAsFactors = FALSE),
+            spar <- mpspline_est1(s, lam = 0.1),
+            expect_is(spar, 'list'),
+            expect_is(spar[[1]], 'matrix'),
+            expect_is(nrow(spar[[1]]), 4),
+            expect_equivalent(spar[[1]][1], 5.3938765799840498),
+            expect_is(spar[[2]], 'matrix'),
+            expect_is(nrow(spar[[2]]), 4),
+            expect_equivalent(spar[[2]][1], 0),
+            expect_is(spar[[3]], 'matrix'),
+            expect_is(nrow(spar[[3]]), 4),
+            expect_equivalent(spar[[3]][1], -0.015308550039877671),
+            expect_is(spar[[4]], 'matrix'),
+            expect_is(nrow(spar[[4]]), 4),
+            expect_equivalent(spar[[4]][1], -0.00076542750199388358),
+            expect_is(spar[[5]], 'matrix'),
+            expect_is(nrow(spar[[5]]), 4),
+            expect_equivalent(spar[[5]][1], 5.4193908300505127),
+            # one horizon
+            s <- data.frame("SID" = "A", "UD" = 0, "LD"  = 10, "VAL" = 5.4,
+                            stringsAsFactors = FALSE),
+            spar <- mpspline_est1(s, lam = 0.1),
+            expect_equal(spar, NA)
+
+
+          ))

@@ -97,12 +97,83 @@ mpspline_datchk <- function(sites = NULL) {
     })
 }
 
+#' Estimate spline parameters
+#'
+#' estimate key parameters for building a mass-preserving spline across a site's
+#' worth of data
+#' @param site data.frame containing a site's worth of soil info
+#' @param lam smoothing thingo
+#' @return A list of parameters used for spline fitting
+#' @keywords internal
+#'
+mpspline_est1 <- function(s = NULL, lam = NULL) {
+
+  # don't bother when only one layer's worth of data
+  if(dim(s)[1] == 1) {
+    return(NA) # NB message later
+  }
+
+  # find n inputs, boundaries, layer thicknesses & gap thicknesses (if present)
+  n <- dim(s)[1]
+  nb <- n - 1
+  th <- s[[3]] - s[[2]]
+  # (ud[2] - ld[1]...ud[nrow] - ld[nrow - 1]):
+  gp <- as.vector(rbind(s[[2]][2:length(s[[2]])], s[[3]][1:length(s[[3]])-1]))
+  # http://r.789695.n4.nabble.com/odd-even-indices-of-a-vector-td4694337.html:
+  gp <- gp[c(TRUE, FALSE)] - gp[c(FALSE, TRUE)]
+
+  # (n-1) x (n-1) matrix R with diag elements R[i, i] = 2(x[i + 1] - x[i - 1])
+  # and off-diag elements R[i + 1, i] = R[i, i + 1] = x[i + 1] - x[i]
+  # x refers to the boundaries of the n horizons x[0] - x[n] where x[0] is
+  # usually the surface.
+  # (this way is not usually much faster than previous, just more concise)
+  n1_mat <- diag(th[2:n] * 2, nrow = nb, ncol = nb)
+  ud <- which(n1_mat > 0) - 1
+  ud <- ud[which(ud > 0)]
+  ld <- which(n1_mat > 0) + 1
+  ld <- ld[which(ld <= nb^2)]
+  n1_mat[ud] <- n1_mat[ld] <- th[2:(n - 1)]
+  th_mat <- diag(th, ncol = nb, nrow = nb) # samp ranges on diag
+  gp_mat <- diag(gp, ncol = nb, nrow = nb) # gap ranges on diag
+  R <- n1_mat + 2 * th_mat + 6 * gp_mat
+
+  # (n-1) x n matrix Q with Q[i, i] = -1, Q[i, i + 1] = 1 and
+  # Q[i, j] = 0 otherwise
+  Q <- diag(-1, ncol = n, nrow = nb)
+  ud <- which(Q == -1) - 1
+  ud <- ud[which(ud > 0)]
+  Q[c(ud, n * nb)] <- 1
+
+  # also need inverse of R
+  R_inv <- try(solve(R), TRUE)
+  stopifnot(is.matrix(R_inv)) # failboat sometimes
+
+  # create the matrix coefficent Z (part of eq 7 in paper) -
+  # [I + 6 * n * lam * Q^t * R^-1 * Q] (I = diag(n))
+  pr_mat <- matrix(6 * n * lam, ncol = nb, nrow = n)
+  f_dub <- pr_mat * t(Q) %*% R_inv
+  Z <- diag(n) + f_dub %*% Q
+
+  # solve Z for the input data values
+  s_bar <- solve(Z, as.matrix(s[[4]])) # tsme comes from comparing these with input
+
+  # calculate the fitted value at the knots
+  b  <- 6 * R_inv %*% Q %*% s_bar
+  b0 <- rbind(0, b) # add a row to top = 0
+  b1 <- rbind(b, 0) # add a row to bottom = 0
+  gamma <- (b1 - b0) / as.matrix(th * 2)
+  alfa <- s_bar - b0 * as.matrix(th) / 2 - gamma * as.matrix(th)^2/3
+
+  # just return the stuff needed for subsequent steps (decompose to vec or nah?)
+  list("s_bar" = s_bar, "b0" = b0, "b1" = b1, "gamma" = gamma, "alfa" = alfa)
+}
+
 # Note: Mass-preserving spline explained in detail in [http://dx.doi.org/10.1016/S0016-7061(99)00003-8];
 
 # Spline fitting for horizon data (created by Brendan Malone; adjusted by T. Hengl)
 mpspline <- function(obj = NULL, var.name = NULL, lam = 0.1,
                      d = t(c(0,5,15,30,60,100,200)),
-                     vlow = 0, vhigh = 1000, show.progress=TRUE) {
+                     vlow = 0, vhigh = 1000, show_progress = TRUE) {
 
   nice_obj <- mpspline_conv(obj)
 
@@ -129,159 +200,9 @@ mpspline <- function(obj = NULL, var.name = NULL, lam = 0.1,
   sites <- mpspline_datchk(sites)
 
 
+  # estimate spline parameters for each site  # prog bar it later maybe
+  params <- lapply(sites[1:10], function(i) mpspline_est1(i, lam = lam))
 
-
-            ## Fit splines profile by profile:
-            message("Fitting mass preserving splines per profile...")
-            if (show.progress)
-              pb <- txtProgressBar(min = 0,
-                                   max = length(sel),
-                                   style = 3)
-            for(st in as.vector(which(sel))) {
-              subs <- matrix(unlist(c(1:np,
-                                      as.vector(objd_m[st, upperb.lst]),
-                                      as.vector(objd_m[st, lowerb.lst]),
-                                      as.vector(objd_m[st, svar.lst]))), ncol = 4)
-              d.ho <-
-                rowMeans(data.frame(x = subs[, 2],
-                                    y = c(NA, subs[1:(nrow(subs) - 1), 3])),
-                         na.rm = TRUE)
-              ## mask out missing values
-              if (ncol(as.matrix(subs[!is.na(subs[, 2]) &
-                                      !is.na(subs[, 3]) & !is.na(subs[, 4]), ]))==1)
-              {
-                subs = t(as.matrix(subs[!is.na(subs[, 2]) &
-                                          !is.na(subs[, 3]) & !is.na(subs[, 4]), ]))
-              }
-              else {
-                subs <- subs[!is.na(subs[, 2]) & !is.na(subs[, 3]) &
-                               !is.na(subs[, 4]), ]
-              }
-
-              ## manipulate the profile data to the required form
-              ir <- c(1:length(subs[,1]))
-              ir <- as.matrix(t(ir))
-              u <- subs[ir,2]
-              u <- as.matrix(t(u))   # upper
-              v <- subs[ir,3]
-              v <- as.matrix(t(v))   # lower
-              y <- subs[ir,4]
-              y <- as.matrix(t(y))   # concentration
-              n <- length(y)       # number of observations in the profile
-
-              ############################################################################################################################################################
-              ## routine for handling profiles with one observation
-              if (n == 1){
-                message(paste("Spline not fitted to profile:",
-                              objd_m[st, 1], sep = " "))
-                ## spline will be interpolated onto these depths (1cm res)
-                xfit<- as.matrix(t(c(1:mxd)))
-                nj<- max(v)
-                if (nj > mxd) { nj <- mxd }
-                yfitv <- xfit
-                yfit[, 1:nj] <- y   ## values extrapolated onto yfit
-                if (nj < mxd) { yfit[, (nj + 1):mxd] = NA }
-                m_fyfit[st, ] <- yfit
-
-                ## Averages of the spline at specified depths
-                nd <- length(d) - 1  ## number of depth intervals
-                dl <- d + 1     ##  increase d by 1
-                for (cj in 1:nd) {
-                  xd1 <- dl[cj]
-                  xd2 <- dl[cj + 1] - 1
-                  if (nj >= xd1 & nj <= xd2) {
-                    xd2 <- nj - 1
-                    yave[st, cj] <- mean(yfit[, xd1:xd2])
-                    } else {
-                      # average of the spline at the specified depth intervals
-                      yave[st, cj] <- mean(yfit[,xd1:xd2])
-                    }
-                  yave[st, cj + 1] <- max(v)
-                  } # maximum soil depth
-              }
-
-              ## End of single observation profile routine
-              ###############################################################################################################################################################
-
-              ## Start of routine for fitting spline to profiles with multiple observations
-
-              else  {
-                ###############################################################################################################################################################
-                ## ESTIMATION OF SPLINE PARAMETERS
-                np1 <- n + 1  # number of interval boundaries
-                nm1 <- n - 1
-                delta <- v - u  # depths of each layer
-                del <- c(u[2:n], u[n]) - v   # del is (u1-v0,u2-v1, ...)
-
-                ## create the (n-1)x(n-1) matrix r; first create r with 1's on
-                ## the diagonal and upper diagonal, and 0's elsewhere
-                r <- matrix(0, ncol = nm1, nrow = nm1)
-                for(dig in 1:nm1){
-                  r[dig, dig] <- 1
-                }
-                for(udig in 1:nm1 - 1){
-                  r[udig, udig + 1] <- 1
-                }
-
-                ## then create a diagonal matrix d2 of differences to
-                ## premultiply the current r
-                d2 <- matrix(0, ncol = nm1, nrow = nm1)
-                diag(d2) <- delta[2:n]  # delta = depth of each layer
-
-                ## then premultiply and add the transpose; this gives half of r
-                r <- d2 %*% r
-                r <- r + t(r)
-
-                ## then create a new diagonal matrix for differences to add to
-                ## the diagonal
-                d1 <- matrix(0, ncol = nm1, nrow = nm1)
-                diag(d1) <- delta[1:nm1]  # delta = depth of each layer
-
-                d3 <- matrix(0, ncol = nm1, nrow = nm1)
-                diag(d3) <- del[1:nm1]  # del =  differences
-
-                r <- r+2*d1 + 6*d3
-
-                ## create the (n-1)xn matrix q
-                q <- matrix(0, ncol = n, nrow = n)
-                for (dig in 1:n){
-                  q[dig, dig] <- -1
-                }
-                for (udig in 1:n - 1){
-                  q[udig, udig + 1] <- 1
-                }
-                q <- q[1:nm1, 1:n]
-                dim.mat <- matrix(q[], ncol = length(1:n),nrow = length(1:nm1))
-
-                ## inverse of r
-                rinv <- try(solve(r), TRUE)
-
-                ## Note: in same cases this will fail due to singular matrix
-                ## problems, hence you need to check if the object is
-                ## meaningfull:
-                if(is.matrix(rinv)){
-                  ## identity matrix i
-                  ind <- diag(n)
-
-                  ## create the matrix coefficent z
-
-                  pr.mat <- matrix(0, ncol = length(1:nm1), nrow = length(1:n))
-                  pr.mat[] <- 6 * n * lam
-                  fdub <- pr.mat * t(dim.mat) %*% rinv
-                  z <- fdub %*% dim.mat + ind
-
-                  ## solve for the fitted layer means
-                  sbar <- solve(z, t(y))
-
-                  ## calculate the fitted value at the knots
-                  b <- 6 * rinv %*% dim.mat %*% sbar
-                  b0 <- rbind(0, b) # add a row to top = 0
-                  b1 <- rbind(b, 0) # add a row to bottom = 0
-                  gamma <- (b1 - b0) / t(2 * delta)
-                  alfa <- sbar - b0 * t(delta) / 2 - gamma * t(delta)^2/3
-
-                  ## END ESTIMATION OF SPLINE PARAMETERS
-                  ##############################################################
 
 
                   ## fit the spline
