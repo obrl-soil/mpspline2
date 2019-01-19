@@ -80,42 +80,21 @@ mpspline <- function(obj = NULL, var.name = NULL, lam = 0.1,
 
   nice_obj <- mpspline_prep(obj)
 
+  # find the max number of samples/horizons across all input sites
+  max_dat <- max(table(nice_obj[[1]]))
+
+  # *shrug* it could happen I guess??
+  if(max_dat == 1) {
+    stop('Supplied sites all have one horizon, please check inputs.')
+  }
+
   ## organize the data:
   ndata <- nrow(objd)
   mxd   <- max(d)
 
-            ## Matrix in which the averaged values of the spline are fitted. The
-            ## depths are specified in the (d) object:
-            m_fyfit <- matrix(NA, ncol = length(c(1:mxd)), nrow = ndata)
-
-            ## Matrix in which the sum of square errors of each lamda iteration
-            ## for the working profile are stored
-            yave <- matrix(NA, ncol = length(d), nrow = ndata)
-
-            ## Matrix in which the sum of square errors for eac h lambda
-            ## iteration for each profile are stored
-            sse  <- matrix(NA, ncol = length(lam), nrow = 1)
-            sset <- matrix(NA, ncol = length(lam), nrow = ndata)
-            nl   <- length(lam)  # Length of the lam matrix
-            svar.lst <-
-              grep(names(objd), pattern = glob2rx(paste(var.name, "_*", sep="")))
-
-            # 5% of the standard deviation of the target attribute
-            s <- 0.05 * sd(unlist(unclass(objd[, svar.lst])), na.rm = TRUE)
-            s2 <- s*s   # overall variance of soil attribute
-
-            # reformat table (profile no, upper boundary, lower boundary, vars):
-            upperb.lst <-
-              grep(names(objd), pattern = glob2rx(paste(depthcols[1], "_*", sep = "")))
-            lowerb.lst <-
-              grep(names(objd), pattern = glob2rx(paste(depthcols[2], "_*", sep = "")))
-            objd_m <-
-              objd[,c(grep(names(objd), pattern = glob2rx(paste0("^", idcol))),
-                      upperb.lst, lowerb.lst, svar.lst)]
-            np <- length(svar.lst) # max number of horizons
-            ## Matrix in which the averaged values of spline-fitted values at
-            ## observed depths are entered:
-            dave <- matrix(NA, ncol = np, nrow = ndata)
+  # 5% of the standard deviation of the target attribute
+  s <- 0.05 * sd(unlist(unclass(objd[, svar.lst])), na.rm = TRUE)
+  s2 <- s*s   # overall variance of soil attribute
 
             if(np < 2 | is.na(np)){
               print("Submitted soil profiles all have 1 horizon")
