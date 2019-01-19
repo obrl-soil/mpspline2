@@ -1,3 +1,69 @@
+#' Prep data for splining
+#'
+#' methods for prepping input objects of various kinds for mpspline
+#'
+#' @param obj Object of class SoilProfileCollection (aqp) or data frame or
+#'   matrix. For data frames and matrices, column 1 must contain site
+#'   identifiers. Columns 2 and 3 must contain upper and lower sample depths,
+#'   respectively. Subsequent columns will contain measured values for those
+#'   depths. For SoilProfileCollections, the `@horizons` slot must be similarly
+#'   arranged, and the `@idcol` and `@depthcol` slots must be correctly defined.
+#' @return data frame, sorted by site ID, upper and lower depth.
+#' @rdname mpspline
+#'
+mpspline_prep <- function(obj = NULL) {
+  UseMethod('mpsline_prep')
+}
+
+# not that I think this is common but jic
+#' @rdname mpsline_prep
+#' @inherit mpsline_prep return
+#' @method mpsline_prep matrix
+#'
+mpspline_prep.matrix <- function(obj = NULL) {
+  # check numeric
+  stopifnot(obj, 'numeric')
+
+  # remove horizons with -ve depths
+  obj <- obj[obj[, 2] >= 0, ]
+  obj <- obj[obj[, 3] >= 0, ]
+
+  # sort by cols 1,2,3 asc
+  obj <- obj[order(obj[, 1], obj[, 2], obj[, 3]), ]
+
+  # return df (check names???)
+  as.data.frame(obj)
+}
+
+#' @rdname mpsline_prep
+#' @inherit mpsline_prep return
+#' @method mpsline_prep data.frame
+#'
+mpspline_prep.data.frame <- function(obj = NULL) {
+  # remove horizons with -ve depths
+  obj <- obj[-which(obj[[2]] < 0 | obj[[3]] < 0), ]
+  # sort by cols 1, 2, 3 asc and return
+  obj[order(obj[[1]], obj[[2]], obj[[3]]), ]
+}
+
+#' @rdname mpsline_prep
+#' @inherit mpsline_prep return
+#' @method mpsline_prep SoilProfileCollection
+#'
+mpspline_prep.SoilProfileCollection <- function(obj = NULL) {
+  dc <- obj@depthcols
+  ic <- obj@idcol
+  ac <- names(obj@horizons)[-which(names(obj@horizons) %in% c(dc, ic))]
+  out <- data.frame(c(obj@horizons[ic],
+                      obj@horizons[dc],
+                      obj@horizons[ac]), stringsAsFactors = FALSE)
+  # remove horizons with -ve depths
+  out <- out[-which(out[[2]] < 0 | out[[3]] < 0), ]
+  # sort and return
+  out[order(out[[1]], out[[2]], out[[3]]), ]
+}
+
+
 # Note: Mass-preserving spline explained in detail in [http://dx.doi.org/10.1016/S0016-7061(99)00003-8];
 
 # Spline fitting for horizon data (created by Brendan Malone; adjusted by T. Hengl)
@@ -5,20 +71,11 @@ mpspline <- function(obj = NULL, var.name = NULL, lam = 0.1,
                      d = t(c(0,5,15,30,60,100,200)),
                      vlow = 0, vhigh = 1000, show.progress=TRUE) {
 
-            depthcols = obj@depthcols
-            idcol     = obj@idcol
+  obj_prepped <- mpspline_prep(obj)
 
-            ## convert to a data frame:
-            obj@horizons = obj@horizons[, c(idcol, depthcols, var.name)]
-
-            ## TH: remove all horizons with negative depth!
-            obj@horizons <- obj@horizons[!obj@horizons[, depthcols[1]] < 0 &
-                                           !obj@horizons[, depthcols[2]] < 0,]
-            objd <- .as.data.frame.SoilProfileCollection(x = obj)
-
-            ## organize the data:
-            ndata <- nrow(objd)
-            mxd   <- max(d)
+  ## organize the data:
+  ndata <- nrow(objd)
+  mxd   <- max(d)
 
             ## Matrix in which the averaged values of the spline are fitted. The
             ## depths are specified in the (d) object:
