@@ -60,7 +60,7 @@ mpspline_conv.SoilProfileCollection <- function(obj = NULL) {
 #' @keywords internal
 #'
 mpspline_datchk <- function(sites = NULL) {
-  # data quality checks. seq_along() allows access to list names (SIDs)
+  # nb seq_along() allows access to list names (SIDs)
   lapply(seq_along(sites), function(i) {
     s <- sites[[i]] # just for readability
 
@@ -82,13 +82,13 @@ mpspline_datchk <- function(sites = NULL) {
     }
 
     # remove horizons with -ve depths
-    s <- s[-which(s[[2]] < 0 | s[[3]] < 0), ]
+    s <- s[!(s[[2]] < 0 | s[[3]] < 0), ]
 
     # sort by cols 1, 2, 3 asc
     s <- s[order(s[[1]], s[[2]], s[[3]]), ]
     rownames(s) <- NULL
 
-    # warn for overlapping data depth ranges
+    # Fail if overlapping data depth ranges
     if(any(diff(as.vector(rbind(s[[2]], s[[3]]))) < 0)) {
       stop("Overlapping horizons detected in site ", names(sites)[i], '.')
     }
