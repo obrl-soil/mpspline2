@@ -22,7 +22,9 @@ mpspline_prep <- function(obj = NULL) {
 #'
 mpspline_prep.matrix <- function(obj = NULL) {
   # check numeric
-  stopifnot(obj, 'numeric')
+  if(!typeof(obj) %in% c('double', 'integer')) {
+    stop('This is not a numeric matrix')
+    }
 
   # remove horizons with -ve depths
   obj <- obj[obj[, 2] >= 0, ]
@@ -31,8 +33,10 @@ mpspline_prep.matrix <- function(obj = NULL) {
   # sort by cols 1,2,3 asc
   obj <- obj[order(obj[, 1], obj[, 2], obj[, 3]), ]
 
-  # return df (check names???)
-  as.data.frame(obj)
+  # return df with some names set
+  obj <- as.data.frame(obj)
+  names(obj)[1:3] <- c('SID', 'UD', 'LD')
+  obj
 }
 
 #' @rdname mpsline_prep
@@ -43,7 +47,9 @@ mpspline_prep.data.frame <- function(obj = NULL) {
   # remove horizons with -ve depths
   obj <- obj[-which(obj[[2]] < 0 | obj[[3]] < 0), ]
   # sort by cols 1, 2, 3 asc and return
-  obj[order(obj[[1]], obj[[2]], obj[[3]]), ]
+  obj <- obj[order(obj[[1]], obj[[2]], obj[[3]]), ]
+  rownames(obj) <- NULL
+  obj
 }
 
 #' @rdname mpsline_prep
@@ -60,9 +66,10 @@ mpspline_prep.SoilProfileCollection <- function(obj = NULL) {
   # remove horizons with -ve depths
   out <- out[-which(out[[2]] < 0 | out[[3]] < 0), ]
   # sort and return
-  out[order(out[[1]], out[[2]], out[[3]]), ]
+  out <- out[order(out[[1]], out[[2]], out[[3]]), ]
+  rownames(out) <- NULL
+  out
 }
-
 
 # Note: Mass-preserving spline explained in detail in [http://dx.doi.org/10.1016/S0016-7061(99)00003-8];
 
@@ -71,7 +78,7 @@ mpspline <- function(obj = NULL, var.name = NULL, lam = 0.1,
                      d = t(c(0,5,15,30,60,100,200)),
                      vlow = 0, vhigh = 1000, show.progress=TRUE) {
 
-  obj_prepped <- mpspline_prep(obj)
+  nice_obj <- mpspline_prep(obj)
 
   ## organize the data:
   ndata <- nrow(objd)
