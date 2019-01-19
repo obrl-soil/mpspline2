@@ -71,6 +71,43 @@ mpspline_prep.SoilProfileCollection <- function(obj = NULL) {
   out
 }
 
+#' pre-spline data checks
+#'
+#' Runs a few data quality checks and makes some repairs where possible.
+#' @param sites list of appropriately formatted site data
+#' @keywords internal
+#'
+mpspline_datchk <- function(sites = NULL) {
+  # data quality checks. seq_along() allows access to list names (SIDs)
+  lapply(seq_along(sites), function(i) {
+    s <- sites[[i]] # just for readability
+
+    # make sure at least some data is present
+    if(all(is.na(s[[4]]))) {
+      stop('No analytical values are present for site ', names(sites)[i], '.')
+    }
+
+    # replace any missing surface values
+    if(is.na(s[[2]][1])) {
+      s[[2]][1] <- 0
+    }
+
+    # replace any missing max input depth values
+    if(is.na(s[[3]][nrow(s)])) {
+      # NB more conservative than existing approach (stretches from last ud to
+      # either 150 or 200cm), but I would argue ud + 10 is more realistic
+      s[[3]][nrow(s)] <- s[[2]][nrow(s)] + 10
+    }
+
+    # warn for overlapping data depth ranges (e.g bad sorting)
+    if(any(diff(as.vector(rbind(s[[2]], s[[3]]))) < 0)) {
+      stop("Overlapping horizons detected in site ", names(sites)[i], '.')
+    }
+
+    s
+    })
+}
+
 # Note: Mass-preserving spline explained in detail in [http://dx.doi.org/10.1016/S0016-7061(99)00003-8];
 
 # Spline fitting for horizon data (created by Brendan Malone; adjusted by T. Hengl)
@@ -96,60 +133,14 @@ mpspline <- function(obj = NULL, var.name = NULL, lam = 0.1,
   s <- 0.05 * sd(unlist(unclass(objd[, svar.lst])), na.rm = TRUE)
   s2 <- s*s   # overall variance of soil attribute
 
-            if(np < 2 | is.na(np)){
-              print("Submitted soil profiles all have 1 horizon")
-            }
+  # split input data into a list by site
+  sites <- split(nice_obj, as.factor(nice_obj[[1]]))
 
-            svar.lst <- grep(names(objd_m),
-                             pattern = glob2rx(paste(var.name, "_*", sep = "")))
-            upperb.lst <-
-              grep(names(objd_m),
-                   pattern = glob2rx(paste(depthcols[1], "_*", sep = "")))
-            lowerb.lst <-
-              grep(names(objd_m),
-                   pattern = glob2rx(paste(depthcols[2], "_*", sep = "")))
+  # do some checks and tidying
+  sites <- mpspline_datchk(sites)
 
-            ## if missing, fill in the depth of first horizon as "0"
-            missing.A <-
-              is.na(objd_m[, which(names(objd_m) ==
-                                     paste(depthcols[1], "_A", sep = ""))])
-            objd_m[missing.A, which(names(objd_m) ==
-                                      paste(depthcols[1], "_A", sep = ""))] <- 0
 
-            ## mask out all profiles with <2 horizons and with at least one of
-            ## the first 3 horizons defined:
-            sel <-
-              !(is.na(objd_m[, which(names(objd_m) == paste(var.name, "_A", sep = ""))]) &
-                  is.na(objd_m[, which(names(objd_m) == paste(var.name, "_B", sep = ""))])) &
-              rowSums(!is.na(objd_m[, svar.lst])) > 0 &
-              rowSums(!is.na(objd_m[, upperb.lst])) > 0 &
-              rowSums(!is.na(objd_m[, lowerb.lst])) > 0
 
-            if(sum(sel) == 0) {
-              stop("Submitted soil profiles do not contain enough horizons (>2) for spline fitting")
-            }
-
-            ## detect lowest horizon no:
-            uw.hor <- rowSums(!is.na(objd_m[, upperb.lst]))
-            # profiles with un-even number of lower/upper depths
-            lw.hor <-
-              as.vector(which(rowSums(!is.na(objd_m[, lowerb.lst])) <
-                                rowSums(!is.na(objd_m[, upperb.lst])) &
-                                rowSums(!is.na(objd_m[, upperb.lst])) > 1))
-
-            ## add missing lower depth where necessary:
-            for (lw in lw.hor) {
-              uwx <- objd_m[lw, upperb.lst[uw.hor[lw]]]
-              if (!is.na(uwx) & sel[lw] == TRUE) {
-                message("Adding missing lower depths...")
-                if (uwx < 150) {
-                  objd_m[lw, lowerb.lst[uw.hor[lw]]] <- 150
-                }
-                else {
-                  objd_m[lw, lowerb.lst[uw.hor[lw]]] <- 200
-                }
-              }
-            }
 
             ## Fit splines profile by profile:
             message("Fitting mass preserving splines per profile...")
