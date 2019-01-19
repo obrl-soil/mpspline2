@@ -1,6 +1,6 @@
-#' Prep data for splining
+#' convert data for splining
 #'
-#' methods for prepping input objects of various kinds for mpspline
+#' generate a consistent input object for splining
 #'
 #' @param obj Object of class SoilProfileCollection (aqp) or data frame or
 #'   matrix. For data frames and matrices, column 1 must contain site
@@ -11,27 +11,20 @@
 #' @return data frame, sorted by site ID, upper and lower depth.
 #' @rdname mpspline
 #'
-mpspline_prep <- function(obj = NULL) {
-  UseMethod('mpsline_prep')
+mpspline_conv <- function(obj = NULL) {
+  UseMethod('mpsline_conv')
 }
 
 # not that I think this is common but jic
-#' @rdname mpsline_prep
-#' @inherit mpsline_prep return
-#' @method mpsline_prep matrix
+#' @rdname mpsline_conv
+#' @inherit mpsline_conv return
+#' @method mpsline_conv matrix
 #'
-mpspline_prep.matrix <- function(obj = NULL) {
+mpspline_conv.matrix <- function(obj = NULL) {
   # check numeric
   if(!typeof(obj) %in% c('double', 'integer')) {
     stop('This is not a numeric matrix')
     }
-
-  # remove horizons with -ve depths
-  obj <- obj[obj[, 2] >= 0, ]
-  obj <- obj[obj[, 3] >= 0, ]
-
-  # sort by cols 1,2,3 asc
-  obj <- obj[order(obj[, 1], obj[, 2], obj[, 3]), ]
 
   # return df with some names set
   obj <- as.data.frame(obj)
@@ -39,36 +32,25 @@ mpspline_prep.matrix <- function(obj = NULL) {
   obj
 }
 
-#' @rdname mpsline_prep
-#' @inherit mpsline_prep return
-#' @method mpsline_prep data.frame
+#' @rdname mpsline_conv
+#' @inherit mpsline_conv return
+#' @method mpsline_conv data.frame
 #'
-mpspline_prep.data.frame <- function(obj = NULL) {
-  # remove horizons with -ve depths
-  obj <- obj[-which(obj[[2]] < 0 | obj[[3]] < 0), ]
-  # sort by cols 1, 2, 3 asc and return
-  obj <- obj[order(obj[[1]], obj[[2]], obj[[3]]), ]
-  rownames(obj) <- NULL
-  obj
+mpspline_conv.data.frame <- function(obj = NULL) {
+  obj # >.>
 }
 
-#' @rdname mpsline_prep
-#' @inherit mpsline_prep return
-#' @method mpsline_prep SoilProfileCollection
+#' @rdname mpsline_conv
+#' @inherit mpsline_conv return
+#' @method mpsline_conv SoilProfileCollection
 #'
-mpspline_prep.SoilProfileCollection <- function(obj = NULL) {
+mpspline_conv.SoilProfileCollection <- function(obj = NULL) {
   dc <- obj@depthcols
   ic <- obj@idcol
   ac <- names(obj@horizons)[-which(names(obj@horizons) %in% c(dc, ic))]
-  out <- data.frame(c(obj@horizons[ic],
-                      obj@horizons[dc],
-                      obj@horizons[ac]), stringsAsFactors = FALSE)
-  # remove horizons with -ve depths
-  out <- out[-which(out[[2]] < 0 | out[[3]] < 0), ]
-  # sort and return
-  out <- out[order(out[[1]], out[[2]], out[[3]]), ]
-  rownames(out) <- NULL
-  out
+  data.frame(c(obj@horizons[ic],
+               obj@horizons[dc],
+               obj@horizons[ac]), stringsAsFactors = FALSE)
 }
 
 #' pre-spline data checks
@@ -99,7 +81,14 @@ mpspline_datchk <- function(sites = NULL) {
       s[[3]][nrow(s)] <- s[[2]][nrow(s)] + 10
     }
 
-    # warn for overlapping data depth ranges (e.g bad sorting)
+    # remove horizons with -ve depths
+    s <- s[-which(s[[2]] < 0 | s[[3]] < 0), ]
+
+    # sort by cols 1, 2, 3 asc
+    s <- s[order(s[[1]], s[[2]], s[[3]]), ]
+    rownames(s) <- NULL
+
+    # warn for overlapping data depth ranges
     if(any(diff(as.vector(rbind(s[[2]], s[[3]]))) < 0)) {
       stop("Overlapping horizons detected in site ", names(sites)[i], '.')
     }
@@ -115,7 +104,7 @@ mpspline <- function(obj = NULL, var.name = NULL, lam = 0.1,
                      d = t(c(0,5,15,30,60,100,200)),
                      vlow = 0, vhigh = 1000, show.progress=TRUE) {
 
-  nice_obj <- mpspline_prep(obj)
+  nice_obj <- mpspline_conv(obj)
 
   # find the max number of samples/horizons across all input sites
   max_dat <- max(table(nice_obj[[1]]))
@@ -136,7 +125,7 @@ mpspline <- function(obj = NULL, var.name = NULL, lam = 0.1,
   # split input data into a list by site
   sites <- split(nice_obj, as.factor(nice_obj[[1]]))
 
-  # do some checks and tidying
+  # do some checks and tidying up
   sites <- mpspline_datchk(sites)
 
 
