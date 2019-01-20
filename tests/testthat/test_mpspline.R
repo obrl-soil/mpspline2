@@ -1,6 +1,5 @@
 context('mpspline tests')
 
-
 test_that("mpspline_conv works for numeric matrices",
           c(
             obj <- matrix(c( 1,  1,  1,  1,   2,   2,   2,   2,
@@ -27,7 +26,6 @@ test_that("mpspline_conv works for data frames",
           )
         )
 
-
 test_that("mpspline_conv works for SoilProfileCollections",
           c(library(aqp),
             obj <-  data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
@@ -51,7 +49,7 @@ test_that("mpspline_datchk does what it oughta",
                                stringsAsFactors = FALSE),
             obj <- mpspline_conv(obj),
             sites <- split(obj, as.factor(obj[[1]])),
-            chkd <- mpspline_datchk(sites),
+            chkd <- mpspline_datchk(sites, 'VAL'),
             expect_is(chkd, 'list'),
             expect_equal(length(chkd), 2),
             expect_is(chkd[[1]], 'data.frame'),
@@ -65,14 +63,16 @@ test_that("mpspline_datchk does what it oughta",
                                            "LD"  = c(30, 60, 90 ,120),
                                            "VAL" = NA_real_,
                                            stringsAsFactors = FALSE)),
-            expect_error(mpspline_datchk(allna)),
+            expect_message(mpspline_datchk(allna, 'VAL')),
+            expect_equal(mpspline_datchk(allna, 'VAL')[[1]], NA),
             # overlap
             ols <- list("A" = data.frame("SID" = "A",
                                          "UD"  = c(0, 30, 50, 90),
                                          "LD"  = c(30, 60, 100 ,120),
                                          "VAL" = c(1,2,3,4),
                                          stringsAsFactors = FALSE)),
-            expect_error(mpspline_datchk(ols))
+            expect_message(mpspline_datchk(ols, 'VAL')),
+            expect_equal(mpspline_datchk(ols, 'VAL')[[1]], NA)
           ))
 
 test_that("mpspline_est1 does the thing",
@@ -83,27 +83,33 @@ test_that("mpspline_est1 does the thing",
                             "LD"  = c(10,20,30,40),
                             "VAL" = c(5.4, 5.3, 5.6, 7.0),
                             stringsAsFactors = FALSE),
-            spar <- mpspline_est1(s, lam = 0.1),
+            spar <- mpspline_est1(s, 'VAL', lam = 0.1),
+            # lock this down
             expect_is(spar, 'list'),
+            expect_equal(length(spar), 6),
+            expect_equal(names(spar), c("s_bar", "b0", "b1", "gamma", "alfa", "Z")),
             expect_is(spar[[1]], 'matrix'),
-            expect_is(nrow(spar[[1]]), 4),
+            expect_equal(dim(spar[[1]])[1], 4),
             expect_equivalent(spar[[1]][1], 5.3938765799840498),
             expect_is(spar[[2]], 'matrix'),
-            expect_is(nrow(spar[[2]]), 4),
+            expect_equal(nrow(spar[[2]]), 4),
             expect_equivalent(spar[[2]][1], 0),
             expect_is(spar[[3]], 'matrix'),
-            expect_is(nrow(spar[[3]]), 4),
+            expect_equal(nrow(spar[[3]]), 4),
             expect_equivalent(spar[[3]][1], -0.015308550039877671),
             expect_is(spar[[4]], 'matrix'),
-            expect_is(nrow(spar[[4]]), 4),
+            expect_equal(nrow(spar[[4]]), 4),
             expect_equivalent(spar[[4]][1], -0.00076542750199388358),
             expect_is(spar[[5]], 'matrix'),
-            expect_is(nrow(spar[[5]]), 4),
+            expect_equal(nrow(spar[[5]]), 4),
             expect_equivalent(spar[[5]][1], 5.4193908300505127),
+            expect_is(spar[[6]], 'matrix'),
+            expect_equal(nrow(spar[[6]]), 4),
+            expect_equivalent(spar[[6]][1], 1.064285714),
             # one horizon
             s <- data.frame("SID" = "A", "UD" = 0, "LD"  = 10, "VAL" = 5.4,
                             stringsAsFactors = FALSE),
-            spar <- mpspline_est1(s, lam = 0.1),
+            spar <- mpspline_est1(s, 'VAL', lam = 0.1),
             expect_equal(spar, NA)
             )
           )
@@ -112,15 +118,15 @@ test_that("mpspline_fit1 does the thing",
           c(
             # single horizon
             s <- data.frame("SID" = "A", "UD" = 0, "LD" = 10, "VAL" = 5.4),
-            spar <- mpspline_est1(s, lam = 0.1),
-            expect_message( mpspline_fit1(s = s, p = spar,
+            spar <- mpspline_est1(s, 'VAL', lam = 0.1),
+            expect_message( mpspline_fit1(s = s, p = spar, var_name = 'VAL',
                                           d = c(0, 5, 15, 30, 60, 100, 200),
                                           vhigh = 14, vlow = 0)),
-            ft1 <- mpspline_fit1(s = s, p = spar,
+            ft1 <- mpspline_fit1(s = s, p = spar, var_name = 'VAL',
                                  d = c(0, 5, 15, 30, 60, 100, 200),
                                  vhigh = 14, vlow = 0),
             expect_is(ft1, 'list'),
-            expect_equal(length(ft1, 2)),
+            expect_equal(length(ft1), 2),
             expect_equal(ft1[[1]][1], s[[4]]),
             expect_equal(ft1[[1]][11], NA_real_),
             expect_equal(ft1[[2]][1], s[[4]]),

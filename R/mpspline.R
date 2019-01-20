@@ -185,6 +185,7 @@ mpspline_est1 <- function(s = NULL, var_name = NULL, lam = NULL) {
 #' @return list of two vectors: fitted values at 1cm intervals and the average
 #'   of same over the requested depth ranges.
 #' @keywords internal
+#' @importFrom utils tail
 #'
 mpspline_fit1 <- function(s = NULL, p = NULL, var_name = NULL,
                           d = NULL, vhigh = NULL, vlow = NULL) {
@@ -240,7 +241,7 @@ mpspline_fit1 <- function(s = NULL, p = NULL, var_name = NULL,
       alfa[h] + b0[h] * (k - s[[2]][h]) + gamma[h] * (k - s[[2]][h])^2
     } else {
       # infill with reference to params from layers either side of the gap:
-      bh  <- tail(which(s[[3]] <= k), 1) # prev sample range
+      bh  <- utils::tail(which(s[[3]] <= k), 1) # prev sample range
       nh  <- which(s[[2]] >= k)[1] # next sample range
       phi <- alfa[nh] - b1[bh] * (s[[2]][nh] - s[[3]][bh])
       phi + b1[bh] * (k - s[[3]][bh])
@@ -337,6 +338,7 @@ mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL, s2 = NULL) {
 #'                   "VAL" = c( 6,  4,  3, 10, 0.1, 0.9, 2.5,   6),
 #'                    stringsAsFactors = FALSE)
 #' mpspline(obj = dat, var_name = 'VAL')
+#' @importFrom stats sd
 #' @export
 #'
 mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
@@ -349,7 +351,7 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
   sites <- split(nice_obj, as.factor(nice_obj[[1]]))
 
   # do some checks and tidying up
-  sites <- mpspline_datchk(sites)
+  sites <- mpspline_datchk(sites, var_name = var_name)
   sites <- sites[!is.na(sites)]
 
   # find the max number of samples/horizons across all input sites post-clean
@@ -363,22 +365,28 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
 
   # estimate spline parameters for each site # prog bar it later maybe
   message("Estimating spline parameters at ", Sys.time())
-  params <- lapply(sites, function(i) mpspline_est1(i, lam = lam))
+  params <- lapply(sites, function(i) {
+    mpspline_est1(i, var_name = var_name, lam = lam)
+    })
 
   # fit spline to each site
   message("Fitting spline parameters at ", Sys.time())
-  splined <- mapply(function(s, p) { mpspline_fit1(s, p, d, vhigh, vlow) },
-                    s = sites, p = params, SIMPLIFY = FALSE)
+  splined <- mapply(function(s, p) {
+    mpspline_fit1(s, p, var_name = var_name,
+                  d = d, vhigh = vhigh, vlow = vlow) },
+    s = sites, p = params, SIMPLIFY = FALSE)
 
   ### TO DO: TESTS FOR MPSPLINE_FIT1
 
   # cl_dat is all the data values in obj[[var_name]] post-clean
   cl_dat <- unlist(sapply(sites, function(i) i[[var_name]]), use.names = FALSE)
-  s_hat_5 <- (0.05 * sd(cl_dat, na.rm = TRUE))^2
+  s_hat_5 <- (0.05 * stats::sd(cl_dat, na.rm = TRUE))^2
   var_5 <- s_hat_5^2
 
-  tmses <- mapply(function(s, p) { mpspline_tmse1(s, p, s2 = var_5) },
-                  s = sites, p = params)
+  tmses <- mapply(function(s, p) {
+    mpspline_tmse1(s, p, var_name = var_name, s2 = var_5)
+    },
+    s = sites, p = params)
 
   ## TO DO: tests for mpspline_tsme1
 

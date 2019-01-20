@@ -11,6 +11,10 @@ Description: An updated version of GSIF::mpspline.
 License: GPL
 Encoding: UTF-8
 LazyData: true
+Imports:
+    aqp,
+    stats,
+    utils
 Suggests: 
     testthat
 RoxygenNote: 6.1.1
