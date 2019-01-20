@@ -1,6 +1,6 @@
-#' convert data for splining
+#' Convert data for splining
 #'
-#' generate a consistent input object for splining
+#' Generate a consistent input object for splining
 #' @param obj Object of class SoilProfileCollection (aqp) or data frame or
 #'   matrix. For data frames and matrices, column 1 must contain site
 #'   identifiers. Columns 2 and 3 must contain upper and lower sample depths,
@@ -58,6 +58,7 @@ mpspline_conv.SoilProfileCollection <- function(obj = NULL) {
 #' Runs a few data quality checks and makes some repairs where possible.
 #' @param sites list of appropriately formatted site data. Sites with no data to
 #'   spline and sites with overlapping depth ranges return NA.
+#' @param var_name target variable
 #' @keywords internal
 #'
 mpspline_datchk <- function(sites = NULL, var_name = NULL) {
@@ -107,10 +108,10 @@ mpspline_datchk <- function(sites = NULL, var_name = NULL) {
 #'
 #' estimate key parameters for building a mass-preserving spline across a single
 #' profile
-#' @param site data.frame containing a single profile's worth of soil info
-#' @param var_name target column
-#' @param lam smoothing thingo
-#' @return A list of parameters used for spline fitting
+#' @param s data.frame containing a single profile's worth of soil info
+#' @param var_name target variable.
+#' @param lam number; smoothing parameter for spline. Defaults to 0.1.
+#' @return A list of parameters used for spline fitting.
 #' @keywords internal
 #'
 mpspline_est1 <- function(s = NULL, var_name = NULL, lam = NULL) {
@@ -315,19 +316,23 @@ mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL, s2 = NULL) {
 #' This function implements the mass-preserving spline method of Bishop et al
 #' (1999) - http://dx.doi.org/10.1016/S0016-7061(99)00003-8] for interpolating
 #' between measured soils data parameters down a profile.
-#' @param obj data frame, matrix or SoilProfileCollection containing measured
-#' soil attributes arranged by depth.
-#' @param var_name length-1 character denoting the column name in obj in which target
-#'   data is stored.
-#' @param lam number; smoothing parameter for spline. Defaults to 0.1
+#' @param obj Object of class SoilProfileCollection (aqp) or data frame or
+#'   matrix. For data frames and matrices, column 1 must contain site
+#'   identifiers. Columns 2 and 3 must contain upper and lower sample depths,
+#'   respectively. Subsequent columns will contain measured values for those
+#'   depths. For SoilProfileCollections, the `@horizons` slot must be similarly
+#'   arranged, and the `@idcol` and `@depthcol` slots must be correctly defined.
+#' @param var_name length-1 character denoting the column in `obj` in which
+#'   target data is stored.
+#' @param lam number; smoothing parameter for spline. Defaults to 0.1.
 #' @param d sequential integer vector; denotes the output depth ranges in cm.
 #'   Defaults to `c(0, 5, 15, 30, 60, 100, 200)` after the globalsoilmap.net
 #'   specification, giving output predictions over intervals 0-5cm, 5-15cm,
 #'   etc.
-#' @param vlow numeric; constrains the minimum predicted value to a realistic number.
-#'   Defaults to 0.
-#' @param vhigh numeric; constrains the maximum predicted value to a realistic number.
-#'   Defaults to 1000.
+#' @param vlow numeric; constrains the minimum predicted value to a realistic
+#'   number. Defaults to 0.
+#' @param vhigh numeric; constrains the maximum predicted value to a realistic
+#'   number. Defaults to 1000.
 #' @return list of five data elements for each site - input data, predicted
 #'   values at each cm down the profile, predicted values over `d` intervals,
 #'   and TMSE.
