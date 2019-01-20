@@ -9,6 +9,8 @@ mpspline_datchk(sites = NULL, var_name = NULL)
 \arguments{
 \item{sites}{list of appropriately formatted site data. Sites with no data to
 spline and sites with overlapping depth ranges return NA.}
+
+\item{var_name}{target variable}
 }
 \description{
 Runs a few data quality checks and makes some repairs where possible.

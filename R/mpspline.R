@@ -350,68 +350,37 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
                      d = c(0,5,15,30,60,100,200),
                      vlow = 0, vhigh = 1000) {
 
+  # format input
   nice_obj <- mpspline_conv(obj)
 
-  # split input data into a list by site
+  # split input into a list by site
   sites <- split(nice_obj, as.factor(nice_obj[[1]]))
 
   # do some checks and tidying up
   sites <- mpspline_datchk(sites, var_name = var_name)
   sites <- sites[!is.na(sites)]
 
-  # find the max number of samples/horizons across all input sites post-clean
-  # tbh not sure this is really necessary
-  max_dat <- max(table(do.call('rbind', sites)[[1]]))
-
-  # *shrug* it could happen I guess??
-  if(max_dat == 1) {
-    stop('Supplied sites all have one depth range, please check inputs.')
-  }
-
-  # estimate spline parameters for each site # prog bar it later maybe
-  message("Estimating spline parameters at ", Sys.time())
-  params <- lapply(sites, function(i) {
-    mpspline_est1(i, var_name = var_name, lam = lam)
-    })
-
-  # fit spline to each site
-  message("Fitting spline parameters at ", Sys.time())
-  splined <- mapply(function(s, p) {
-    mpspline_fit1(s, p, var_name = var_name,
-                  d = d, vhigh = vhigh, vlow = vlow) },
-    s = sites, p = params, SIMPLIFY = FALSE)
-
-  ### TO DO: TESTS FOR MPSPLINE_FIT1
-
   # cl_dat is all the data values in obj[[var_name]] post-clean
   cl_dat <- unlist(sapply(sites, function(i) i[[var_name]]), use.names = FALSE)
   s_hat_5 <- (0.05 * stats::sd(cl_dat, na.rm = TRUE))^2
   var_5 <- s_hat_5^2
 
-  tmses <- mapply(function(s, p) {
-    mpspline_tmse1(s, p, var_name = var_name, s2 = var_5)
-    },
-    s = sites, p = params)
-
-  ## TO DO: tests for mpspline_tsme1
-
-  # OUTPUTS - make a condensed option? List of dataframes
-
-  # list-based
-  out <- mapply(function(s, e, tmse, lam) {
+  # estimate spline parameters for each site and fit
+  splined <- lapply(sites, function(s) {
+    p <- mpspline_est1(s, var_name = var_name, lam = lam)
+    e <- mpspline_fit1(s, p, var_name = var_name,
+                       d = d, vhigh = vhigh, vlow = vlow)
+    t <- mpspline_tmse1(s, p, var_name = var_name, s2 = var_5)
     list("inputs"  = s,
          "est_1cm" = e[[1]],
          "est_dcm" = e[[2]],
-         "tmse"    = tmse,
+         "tmse"    = t,
          "lam"     = lam)
-  },
-  s = sites, e = splined, tmse = tmses, lam = lam, SIMPLIFY = FALSE)
+    })
 
-  # mat_based next
-  #out_mat <- list("inputs" = do.call('rbind', sites),
-  #                "est_1cm" = )
-#
-  out
-
+  ### TO DO: tests for mpspline_fit1
+  ### TO DO: tests for mpspline_tsme1
+  ### TO DO: Outputs - make a condensed option? List of dataframes
+  splined
 }
 

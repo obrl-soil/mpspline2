@@ -7,14 +7,14 @@
 mpspline_est1(s = NULL, var_name = NULL, lam = NULL)
 }
 \arguments{
-\item{var_name}{target column}
+\item{s}{data.frame containing a single profile's worth of soil info}
 
-\item{lam}{smoothing thingo}
+\item{var_name}{target variable.}
 
-\item{site}{data.frame containing a single profile's worth of soil info}
+\item{lam}{number; smoothing parameter for spline. Defaults to 0.1.}
 }
 \value{
-A list of parameters used for spline fitting
+A list of parameters used for spline fitting.
 }
 \description{
 estimate key parameters for building a mass-preserving spline across a single

@@ -5,7 +5,7 @@
 \alias{mpspline_conv.matrix}
 \alias{mpspline_conv.data.frame}
 \alias{mpspline_conv.SoilProfileCollection}
-\title{convert data for splining}
+\title{Convert data for splining}
 \usage{
 mpspline_conv(obj = NULL)
 
@@ -27,6 +27,6 @@ arranged, and the `@idcol` and `@depthcol` slots must be correctly defined.}
 data frame, sorted by site ID, upper and lower depth.
 }
 \description{
-generate a consistent input object for splining
+Generate a consistent input object for splining
 }
 \keyword{internal}

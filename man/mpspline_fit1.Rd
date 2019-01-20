@@ -12,19 +12,19 @@ mpspline_fit1(s = NULL, p = NULL, var_name = NULL, d = NULL,
 
 \item{p}{estimated spline parameters for one site}
 
-\item{var_name}{length-1 character denoting the column name in obj in which target
-data is stored.}
+\item{var_name}{length-1 character denoting the column in `obj` in which
+target data is stored.}
 
 \item{d}{sequential integer vector; denotes the output depth ranges in cm.
 Defaults to `c(0, 5, 15, 30, 60, 100, 200)` after the globalsoilmap.net
 specification, giving output predictions over intervals 0-5cm, 5-15cm,
 etc.}
 
-\item{vhigh}{numeric; constrains the maximum predicted value to a realistic number.
-Defaults to 1000.}
+\item{vhigh}{numeric; constrains the maximum predicted value to a realistic
+number. Defaults to 1000.}
 
-\item{vlow}{numeric; constrains the minimum predicted value to a realistic number.
-Defaults to 0.}
+\item{vlow}{numeric; constrains the minimum predicted value to a realistic
+number. Defaults to 0.}
 }
 \value{
 list of two vectors: fitted values at 1cm intervals and the average

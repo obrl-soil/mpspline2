@@ -8,24 +8,28 @@ mpspline(obj = NULL, var_name = NULL, lam = 0.1, d = c(0, 5, 15,
   30, 60, 100, 200), vlow = 0, vhigh = 1000)
 }
 \arguments{
-\item{obj}{data frame, matrix or SoilProfileCollection containing measured
-soil attributes arranged by depth.}
+\item{obj}{Object of class SoilProfileCollection (aqp) or data frame or
+matrix. For data frames and matrices, column 1 must contain site
+identifiers. Columns 2 and 3 must contain upper and lower sample depths,
+respectively. Subsequent columns will contain measured values for those
+depths. For SoilProfileCollections, the `@horizons` slot must be similarly
+arranged, and the `@idcol` and `@depthcol` slots must be correctly defined.}
 
-\item{var_name}{length-1 character denoting the column name in obj in which target
-data is stored.}
+\item{var_name}{length-1 character denoting the column in `obj` in which
+target data is stored.}
 
-\item{lam}{number; smoothing parameter for spline. Defaults to 0.1}
+\item{lam}{number; smoothing parameter for spline. Defaults to 0.1.}
 
 \item{d}{sequential integer vector; denotes the output depth ranges in cm.
 Defaults to `c(0, 5, 15, 30, 60, 100, 200)` after the globalsoilmap.net
 specification, giving output predictions over intervals 0-5cm, 5-15cm,
 etc.}
 
-\item{vlow}{numeric; constrains the minimum predicted value to a realistic number.
-Defaults to 0.}
+\item{vlow}{numeric; constrains the minimum predicted value to a realistic
+number. Defaults to 0.}
 
-\item{vhigh}{numeric; constrains the maximum predicted value to a realistic number.
-Defaults to 1000.}
+\item{vhigh}{numeric; constrains the maximum predicted value to a realistic
+number. Defaults to 1000.}
 }
 \value{
 list of five data elements for each site - input data, predicted
