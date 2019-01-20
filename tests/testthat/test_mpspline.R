@@ -124,7 +124,7 @@ test_that("mpspline_fit1 does the thing",
             expect_equal(ft1[[1]][1], s[[4]]),
             expect_equal(ft1[[1]][11], NA_real_),
             expect_equal(ft1[[2]][1], s[[4]]),
-            expect_equal(ft1[[2]][3], NA_real_),
+            expect_equal(ft1[[2]][3], NA_real_)
             # normal no gaps
 
             # gaps

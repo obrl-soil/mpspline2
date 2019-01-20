@@ -1,7 +1,6 @@
 #' convert data for splining
 #'
 #' generate a consistent input object for splining
-#'
 #' @param obj Object of class SoilProfileCollection (aqp) or data frame or
 #'   matrix. For data frames and matrices, column 1 must contain site
 #'   identifiers. Columns 2 and 3 must contain upper and lower sample depths,
@@ -9,16 +8,17 @@
 #'   depths. For SoilProfileCollections, the `@horizons` slot must be similarly
 #'   arranged, and the `@idcol` and `@depthcol` slots must be correctly defined.
 #' @return data frame, sorted by site ID, upper and lower depth.
-#' @rdname mpspline
+#' @keywords internal
+#' @rdname mpspline_conv
 #'
 mpspline_conv <- function(obj = NULL) {
-  UseMethod('mpsline_conv')
+  UseMethod('mpspline_conv')
 }
 
 # not that I think this is common but jic
-#' @rdname mpsline_conv
-#' @inherit mpsline_conv return
-#' @method mpsline_conv matrix
+#' @rdname mpspline_conv
+#' @inherit mpspline_conv return
+#' @method mpspline_conv matrix
 #'
 mpspline_conv.matrix <- function(obj = NULL) {
   # check numeric
@@ -32,17 +32,17 @@ mpspline_conv.matrix <- function(obj = NULL) {
   obj
 }
 
-#' @rdname mpsline_conv
-#' @inherit mpsline_conv return
-#' @method mpsline_conv data.frame
+#' @rdname mpspline_conv
+#' @inherit mpspline_conv return
+#' @method mpspline_conv data.frame
 #'
 mpspline_conv.data.frame <- function(obj = NULL) {
   obj # >.>
 }
 
-#' @rdname mpsline_conv
-#' @inherit mpsline_conv return
-#' @method mpsline_conv SoilProfileCollection
+#' @rdname mpspline_conv
+#' @inherit mpspline_conv return
+#' @method mpspline_conv SoilProfileCollection
 #'
 mpspline_conv.SoilProfileCollection <- function(obj = NULL) {
   dc <- obj@depthcols
@@ -179,7 +179,9 @@ mpspline_est1 <- function(s = NULL, var_name = NULL, lam = NULL) {
 #' Fit spline parameters
 #'
 #' Fit spline parameters to data for a single site.
-#' @param in
+#' @param s data for one site
+#' @param p estimated spline parameters for one site
+#' @inheritParams mpspline
 #' @return list of two vectors: fitted values at 1cm intervals and the average
 #'   of same over the requested depth ranges.
 #' @keywords internal
@@ -280,13 +282,14 @@ mpspline_fit1 <- function(s = NULL, p = NULL, var_name = NULL,
 #' Calculates Total Mean Squared Error (TMSE) for a single site
 #' @param s site data frame
 #' @param p estimated spline params for site
-#' @s2 numeric, 5% of the variance for the parent dataset
+#' @param var_name target variable
+#' @param s2 numeric, 5\% of the variance for the parent dataset
 #' @return numeric, tmse
 #' @keywords internal
 #'
 mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL, s2 = NULL) {
-
-  if(all(is.na(p))) { # single layer
+  # single layer in input
+  if(all(is.na(p))) {
     return(NA_real_)
   }
 
@@ -313,22 +316,21 @@ mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL, s2 = NULL) {
 #' between measured soils data parameters down a profile.
 #' @param obj data frame, matrix or SoilProfileCollection containing measured
 #' soil attributes arranged by depth.
-#' @var_name length-1 character denoting the column name in obj in which target
+#' @param var_name length-1 character denoting the column name in obj in which target
 #'   data is stored.
-#' @lam number; smoothing parameter for spline. Defaults to 0.1
-#' @d sequential integer vector; denotes the output depth ranges in cm.
+#' @param lam number; smoothing parameter for spline. Defaults to 0.1
+#' @param d sequential integer vector; denotes the output depth ranges in cm.
 #'   Defaults to `c(0, 5, 15, 30, 60, 100, 200)` after the globalsoilmap.net
 #'   specification, giving output predictions over intervals 0-5cm, 5-15cm,
 #'   etc.
-#' @vlow numeric; constrains the minimum predicted value to a realistic number.
+#' @param vlow numeric; constrains the minimum predicted value to a realistic number.
 #'   Defaults to 0.
-#' @vhigh numeric; constrains the maximum predicted value to a realistic number.
+#' @param vhigh numeric; constrains the maximum predicted value to a realistic number.
 #'   Defaults to 1000.
 #' @return list of five data elements for each site - input data, predicted
 #'   values at each cm down the profile, predicted values over `d` intervals,
 #'   and TMSE.
 #' @examples
-#'
 #' dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
 #'                    "UD" = c( 0, 20, 40, 60,   0,  15,  45,  80),
 #'                    "LD" = c(10, 30, 50, 70,   5,  30,  60, 100),
@@ -343,7 +345,7 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
 
   nice_obj <- mpspline_conv(obj)
 
-   # split input data into a list by site
+  # split input data into a list by site
   sites <- split(nice_obj, as.factor(nice_obj[[1]]))
 
   # do some checks and tidying up
@@ -351,6 +353,7 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
   sites <- sites[!is.na(sites)]
 
   # find the max number of samples/horizons across all input sites post-clean
+  # tbh not sure this is really necessary
   max_dat <- max(table(do.call('rbind', sites)[[1]]))
 
   # *shrug* it could happen I guess??
@@ -369,7 +372,7 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
 
   ### TO DO: TESTS FOR MPSPLINE_FIT1
 
-  # cl_dat = all the data values in obj, but after all the cleaning work
+  # cl_dat is all the data values in obj[[var_name]] post-clean
   cl_dat <- unlist(sapply(sites, function(i) i[[var_name]]), use.names = FALSE)
   s_hat_5 <- (0.05 * sd(cl_dat, na.rm = TRUE))^2
   var_5 <- s_hat_5^2
@@ -379,7 +382,7 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
 
   ## TO DO: tests for mpspline_tsme1
 
-  # OUTPUTS - options around lists v matrices???
+  # OUTPUTS - make a condensed option? List of dataframes
 
   # list-based
   out <- mapply(function(s, e, tmse, lam) {
