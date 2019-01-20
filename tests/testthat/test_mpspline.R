@@ -105,6 +105,36 @@ test_that("mpspline_est1 does the thing",
                             stringsAsFactors = FALSE),
             spar <- mpspline_est1(s, lam = 0.1),
             expect_equal(spar, NA)
+            )
+          )
+
+test_that("mpspline_fit1 does the thing",
+          c(
+            # single horizon
+            s <- data.frame("SID" = "A", "UD" = 0, "LD" = 10, "VAL" = 5.4),
+            spar <- mpspline_est1(s, lam = 0.1),
+            expect_message( mpspline_fit1(s = s, p = spar,
+                                          d = c(0, 5, 15, 30, 60, 100, 200),
+                                          vhigh = 14, vlow = 0)),
+            ft1 <- mpspline_fit1(s = s, p = spar,
+                                 d = c(0, 5, 15, 30, 60, 100, 200),
+                                 vhigh = 14, vlow = 0),
+            expect_is(ft1, 'list'),
+            expect_equal(length(ft1, 2)),
+            expect_equal(ft1[[1]][1], s[[4]]),
+            expect_equal(ft1[[1]][11], NA_real_),
+            expect_equal(ft1[[2]][1], s[[4]]),
+            expect_equal(ft1[[2]][3], NA_real_),
+            # normal no gaps
+
+            # gaps
+
+
+            # stops short of max d
+
+
+            # starts below surface
+
 
 
           ))

@@ -56,41 +56,47 @@ mpspline_conv.SoilProfileCollection <- function(obj = NULL) {
 #' pre-spline data checks
 #'
 #' Runs a few data quality checks and makes some repairs where possible.
-#' @param sites list of appropriately formatted site data
+#' @param sites list of appropriately formatted site data. Sites with no data to
+#'   spline and sites with overlapping depth ranges return NA.
 #' @keywords internal
 #'
-mpspline_datchk <- function(sites = NULL) {
+mpspline_datchk <- function(sites = NULL, var_name = NULL) {
   # nb seq_along() allows access to list names (SIDs)
   lapply(seq_along(sites), function(i) {
     s <- sites[[i]] # just for readability
 
-    # make sure at least some data is present
-    if(all(is.na(s[[4]]))) {
-      stop('No analytical values are present for site ', names(sites)[i], '.')
+    # Drop sites where target param has no data at all
+    if(all(is.na(s[[var_name]]))) {
+      message('No data values are present for site ', names(sites)[i], '.')
+      return(NA)
     }
 
-    # replace any missing surface values
+    # remove any horizons where val == NA
+    s <- s[!is.na(s[[var_name]]), ]
+
+    # replace any missing surface value
     if(is.na(s[[2]][1])) {
       s[[2]][1] <- 0
     }
 
-    # replace any missing max input depth values
+    # replace any missing max input depth value
     if(is.na(s[[3]][nrow(s)])) {
       # NB more conservative than existing approach (stretches from last ud to
-      # either 150 or 200cm), but I would argue ud + 10 is more realistic
+      # either 150 or 200cm), but ud + 10cm is more realistic
       s[[3]][nrow(s)] <- s[[2]][nrow(s)] + 10
     }
 
-    # remove horizons with -ve depths
+    # remove any horizons with -ve depths
     s <- s[!(s[[2]] < 0 | s[[3]] < 0), ]
 
     # sort by cols 1, 2, 3 asc
     s <- s[order(s[[1]], s[[2]], s[[3]]), ]
     rownames(s) <- NULL
 
-    # Fail if overlapping data depth ranges
+    # Drop sites with overlapping data depth ranges
     if(any(diff(as.vector(rbind(s[[2]], s[[3]]))) < 0)) {
-      stop("Overlapping horizons detected in site ", names(sites)[i], '.')
+      message("Overlapping depth ranges detected in site ", names(sites)[i], '.')
+      return(NA)
     }
 
     s
@@ -99,14 +105,15 @@ mpspline_datchk <- function(sites = NULL) {
 
 #' Estimate spline parameters
 #'
-#' estimate key parameters for building a mass-preserving spline across a site's
-#' worth of data
-#' @param site data.frame containing a site's worth of soil info
+#' estimate key parameters for building a mass-preserving spline across a single
+#' profile
+#' @param site data.frame containing a single profile's worth of soil info
+#' @param var_name target column
 #' @param lam smoothing thingo
 #' @return A list of parameters used for spline fitting
 #' @keywords internal
 #'
-mpspline_est1 <- function(s = NULL, lam = NULL) {
+mpspline_est1 <- function(s = NULL, var_name = NULL, lam = NULL) {
 
   # don't bother when only one layer's worth of data
   if(dim(s)[1] == 1) {
@@ -155,7 +162,7 @@ mpspline_est1 <- function(s = NULL, lam = NULL) {
   Z <- diag(n) + f_dub %*% Q
 
   # solve Z for the input data values
-  s_bar <- solve(Z, as.matrix(s[[4]])) # tsme comes from comparing these with input
+  s_bar <- solve(Z, as.matrix(s[[var_name]]))
 
   # calculate the fitted value at the knots
   b  <- 6 * R_inv %*% Q %*% s_bar
@@ -165,145 +172,230 @@ mpspline_est1 <- function(s = NULL, lam = NULL) {
   alfa <- s_bar - b0 * as.matrix(th) / 2 - gamma * as.matrix(th)^2/3
 
   # just return the stuff needed for subsequent steps (decompose to vec or nah?)
-  list("s_bar" = s_bar, "b0" = b0, "b1" = b1, "gamma" = gamma, "alfa" = alfa)
+  list("s_bar" = s_bar, "b0" = b0, "b1" = b1,
+       "gamma" = gamma, "alfa" = alfa, "Z" = Z)
 }
 
-# Note: Mass-preserving spline explained in detail in [http://dx.doi.org/10.1016/S0016-7061(99)00003-8];
+#' Fit spline parameters
+#'
+#' Fit spline parameters to data for a single site.
+#' @param in
+#' @return list of two vectors: fitted values at 1cm intervals and the average
+#'   of same over the requested depth ranges.
+#' @keywords internal
+#'
+mpspline_fit1 <- function(s = NULL, p = NULL, var_name = NULL,
+                          d = NULL, vhigh = NULL, vlow = NULL) {
 
-# Spline fitting for horizon data (created by Brendan Malone; adjusted by T. Hengl)
-mpspline <- function(obj = NULL, var.name = NULL, lam = 0.1,
-                     d = t(c(0,5,15,30,60,100,200)),
-                     vlow = 0, vhigh = 1000, show_progress = TRUE) {
+  # single horizon - no splining for you!
+  if(all(is.na(p))) {
+    ud <- s[[2]]
+    ld <- s[[3]]
+    not_1cm <- rep(NA_real_, times = max(d))
+    not_1cm[seq(ud, ld)] <- s[[var_name]]
+    not_dcm <- rep(NA_real_, times = length(d))
+    not_dcm[which(d >= ud & d <= ld)] <- s[[var_name]]
+    # constrain input data to supplied limits
+    not_1cm[which(not_1cm > vhigh)] <- vhigh
+    not_1cm[which(not_1cm < vlow)]  <- vlow
+    not_dcm[which(not_dcm > vhigh)] <- vhigh
+    not_dcm[which(not_dcm < vlow)]  <- vlow
+    message(paste0("Site ", s[[1]],
+                   " only has data for one depth range and was not splined."))
+    return(list("est_1cm" = not_1cm, "est_dcm" = not_dcm))
+  }
+
+  b0    <- p[['b0']]
+  b1    <- p[['b1']]
+  gamma <- p[['gamma']]
+  alfa  <- p[['alfa']]
+
+  nj <- max(s[[3]])
+  if (nj > max(d)) { nj <- max(d) } # if profile > max d, ignore the deeper part
+
+  cm_ds <- seq(nj) - 1 # need 0-index to match splinetool.exe *sigh*
+
+  # name each depth with its membership layer, NA for gaps
+  names(cm_ds) <- sapply(cm_ds, function(i) {
+    x <- which(s[[2]] <= i & s[[3]] > i)
+    if(length(x) == 0) { NA_integer_ } else { x }
+  })
+
+  est_1cm <- sapply(cm_ds, function(k) {  # for every cm to max(d); 0 = 0 - 1 cm
+    # if input data from profile starts below surface, return alfa of first
+    # available horizon for all depths above s[[2]][1]:
+    if (k < s[[2]][1]) {
+      return(alfa[1])
+    }
+    # NB splinetool.exe does something different, but not better IMO - looks
+    # like it can over or underestimate where a 0-x sample is not present.
+    # Would be more conservative to refuse to predict above the first sample.
+
+    h <- as.integer(names(cm_ds)[k + 1]) # uuugghhhhhhh
+
+    # if not in a gap, predict using the params from that layer:
+    if(!is.na(h)) {
+      alfa[h] + b0[h] * (k - s[[2]][h]) + gamma[h] * (k - s[[2]][h])^2
+    } else {
+      # infill with reference to params from layers either side of the gap:
+      bh  <- tail(which(s[[3]] <= k), 1) # prev sample range
+      nh  <- which(s[[2]] >= k)[1] # next sample range
+      phi <- alfa[nh] - b1[bh] * (s[[2]][nh] - s[[3]][bh])
+      phi + b1[bh] * (k - s[[3]][bh])
+    }
+  }, USE.NAMES = FALSE)
+ # est_1cm <- unlist(est_1cm, use.names = FALSE) # sometimes sapply isn't?!
+  names(est_1cm) <- seq(nj)
+
+  # constrain 1cm estimates to supplied limits
+  est_1cm[which(est_1cm > vhigh)] <- vhigh
+  est_1cm[which(est_1cm < vlow)]  <- vlow
+
+  # pad vec to max(d)
+  if(nj < max(d)) {
+    est_1cm <- rep(est_1cm, length.out = max(d))
+    est_1cm[(nj + 1):max(d)] <- NA_real_
+  }
+
+  # average est_1cm over the output depths
+  # NB doesn't match current mpspline but does match splinetool.exe
+  od_mat <- matrix(c(d[1:length(d) - 1],
+                     d[2:length(d)]), ncol = 2, byrow = FALSE)
+  # will need a tweak if anyone tries to go past 999cm:
+  nms <- apply(od_mat, 1, function(i) paste0(sprintf('%03d', i[1]), '_',
+                                             sprintf('%03d', i[2]), '_cm'))
+  od_mat[, 1] <- od_mat[, 1] + 1 # e.g. 1 - 5, = >= 0cm and < 5cm etc
+  est_dcm <- apply(od_mat, 1, FUN = function(i) {
+    mean(est_1cm[i[1]:i[2]], na.rm = TRUE)
+  })
+  names(est_dcm) <- nms
+  est_dcm[is.nan(est_dcm)] <- NA_real_
+
+  # return list with 1cm and dcm as vectors
+  list("est_1cm" = est_1cm, "est_dcm" = est_dcm)
+}
+
+#' calculate TSME
+#'
+#' Calculates Total Mean Squared Error (TMSE) for a single site
+#' @param s site data frame
+#' @param p estimated spline params for site
+#' @s2 numeric, 5% of the variance for the parent dataset
+#' @return numeric, tmse
+#' @keywords internal
+#'
+mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL, s2 = NULL) {
+
+  if(all(is.na(p))) { # single layer
+    return(NA_real_)
+  }
+
+  s_bar <- p[['s_bar']]
+  Z     <- p[['Z']]
+  n     <- dim(s)[1]
+
+  ssq <- sum((as.matrix(s[[var_name]]) - s_bar)^2)
+  g <- solve(Z)
+  ei <- eigen(g)$values
+  df <- n - sum(ei)
+  sig2w <- ssq / df
+  ## calculate the Carter and Eagleson estimate of residual variance
+  dfc <- n - 2 * sum(ei) + sum(ei^2)
+  sig2c <- ssq / dfc
+  ## calculate the estimate of the true mean squared error
+  ssq / n - 2 * s2 * df / n + s2
+}
+
+#' Spline discrete soils data
+#'
+#' This function implements the mass-preserving spline method of Bishop et al
+#' (1999) - http://dx.doi.org/10.1016/S0016-7061(99)00003-8] for interpolating
+#' between measured soils data parameters down a profile.
+#' @param obj data frame, matrix or SoilProfileCollection containing measured
+#' soil attributes arranged by depth.
+#' @var_name length-1 character denoting the column name in obj in which target
+#'   data is stored.
+#' @lam number; smoothing parameter for spline. Defaults to 0.1
+#' @d sequential integer vector; denotes the output depth ranges in cm.
+#'   Defaults to `c(0, 5, 15, 30, 60, 100, 200)` after the globalsoilmap.net
+#'   specification, giving output predictions over intervals 0-5cm, 5-15cm,
+#'   etc.
+#' @vlow numeric; constrains the minimum predicted value to a realistic number.
+#'   Defaults to 0.
+#' @vhigh numeric; constrains the maximum predicted value to a realistic number.
+#'   Defaults to 1000.
+#' @return list of five data elements for each site - input data, predicted
+#'   values at each cm down the profile, predicted values over `d` intervals,
+#'   and TMSE.
+#' @examples
+#'
+#' dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
+#'                    "UD" = c( 0, 20, 40, 60,   0,  15,  45,  80),
+#'                    "LD" = c(10, 30, 50, 70,   5,  30,  60, 100),
+#'                   "VAL" = c( 6,  4,  3, 10, 0.1, 0.9, 2.5,   6),
+#'                    stringsAsFactors = FALSE)
+#' mpspline(obj = dat, var_name = 'VAL')
+#' @export
+#'
+mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
+                     d = c(0,5,15,30,60,100,200),
+                     vlow = 0, vhigh = 1000) {
 
   nice_obj <- mpspline_conv(obj)
 
-  # find the max number of samples/horizons across all input sites
-  max_dat <- max(table(nice_obj[[1]]))
-
-  # *shrug* it could happen I guess??
-  if(max_dat == 1) {
-    stop('Supplied sites all have one horizon, please check inputs.')
-  }
-
-  ## organize the data:
-  ndata <- nrow(objd)
-  mxd   <- max(d)
-
-  # 5% of the standard deviation of the target attribute
-  s <- 0.05 * sd(unlist(unclass(objd[, svar.lst])), na.rm = TRUE)
-  s2 <- s*s   # overall variance of soil attribute
-
-  # split input data into a list by site
+   # split input data into a list by site
   sites <- split(nice_obj, as.factor(nice_obj[[1]]))
 
   # do some checks and tidying up
   sites <- mpspline_datchk(sites)
+  sites <- sites[!is.na(sites)]
 
+  # find the max number of samples/horizons across all input sites post-clean
+  max_dat <- max(table(do.call('rbind', sites)[[1]]))
 
-  # estimate spline parameters for each site  # prog bar it later maybe
-  params <- lapply(sites[1:10], function(i) mpspline_est1(i, lam = lam))
+  # *shrug* it could happen I guess??
+  if(max_dat == 1) {
+    stop('Supplied sites all have one depth range, please check inputs.')
+  }
 
+  # estimate spline parameters for each site # prog bar it later maybe
+  message("Estimating spline parameters at ", Sys.time())
+  params <- lapply(sites, function(i) mpspline_est1(i, lam = lam))
 
+  # fit spline to each site
+  message("Fitting spline parameters at ", Sys.time())
+  splined <- mapply(function(s, p) { mpspline_fit1(s, p, d, vhigh, vlow) },
+                    s = sites, p = params, SIMPLIFY = FALSE)
 
-                  ## fit the spline
-                  ## spline will be interpolated onto these depths (1cm res)
-                  xfit <- as.matrix(t(c(1:mxd)))
-                  nj   <- max(v)
-                  if (nj > mxd) { nj <- mxd }
-                  yfit<- xfit
-                  for (k in 1:nj) {
-                    xd <- xfit[k]
-                    if (xd < u[1]) {
-                      p <- alfa[1]
-                    } else {
-                      for(its in 1:n) {
-                        if(its < n) {
-                          tf2 = as.numeric(xd > v[its] & xd < u[its + 1])
-                        } else {
-                          tf2 <- 0
-                        }
+  ### TO DO: TESTS FOR MPSPLINE_FIT1
 
-                        if (xd >= u[its] & xd <= v[its]) {
-                          p = alfa[its] + b0[its] * (xd - u[its]) + gamma[its] * (xd - u[its]) ^ 2
-                        } else if(tf2) {
-                          phi = alfa[its + 1] - b1[its] * (u[its + 1] - v[its])
-                          p = phi + b1[its] * (xd - v[its])
-                        }
-                      }
-                    }
-                    yfit[k] = p
-                  }
-                  if (nj < mxd) { yfit[, (nj+1):mxd] = NA }
+  # cl_dat = all the data values in obj, but after all the cleaning work
+  cl_dat <- unlist(sapply(sites, function(i) i[[var_name]]), use.names = FALSE)
+  s_hat_5 <- (0.05 * sd(cl_dat, na.rm = TRUE))^2
+  var_5 <- s_hat_5^2
 
-                  yfit[which(yfit > vhigh)] <- vhigh
-                  yfit[which(yfit < vlow)]  <- vlow
-                  m_fyfit[st, ] <- yfit
+  tmses <- mapply(function(s, p) { mpspline_tmse1(s, p, s2 = var_5) },
+                  s = sites, p = params)
 
-                  ## Averages of the spline at specified depths
-                  nd <- length(d) - 1  # number of depth intervals
-                  dl <- d + 1     #  increase d by 1
-                  for (cj in 1:nd) {
-                    xd1 <- dl[cj]
-                    xd2 <- dl[cj + 1] - 1
-                    if (nj >= xd1 & nj <= xd2) {
-                      xd2 <- nj - 1
-                      yave[st, cj] <- mean(yfit[, xd1:xd2])
-                      } else {
-                        yave[st, cj] <- mean(yfit[, xd1:xd2])
-                        } # average of the spline at the specified depth intervals
-                    yave[st, cj + 1] <- max(v)
-                    } #maximum soil depth
+  ## TO DO: tests for mpspline_tsme1
 
-                  ## Spline estimates at observed depths
-                  dave[st, 1:n] <- sbar
+  # OUTPUTS - options around lists v matrices???
 
-                  ## CALCULATION OF THE ERROR BETWEEN OBSERVED AND FITTED VALUES
-                  ## calculate Wahba's estimate of the residual variance sigma^2
-                  ssq <- sum((t(y) - sbar)^2)
-                  g <- solve(z)
-                  ei <- eigen(g)
-                  ei <- ei$values
-                  df <- n - sum(ei)
-                  sig2w <- ssq / df
-                  ## calculate the Carter and Eagleson estimate of residual variance
-                  dfc <- n - 2 * sum(ei) + sum(ei^2)
-                  sig2c <- ssq / dfc
-                  ## calculate the estimate of the true mean squared error
-                  tmse <- ssq / n - 2 * s2 * df/ n + s2
-                  sset[st] <- tmse
+  # list-based
+  out <- mapply(function(s, e, tmse, lam) {
+    list("inputs"  = s,
+         "est_1cm" = e[[1]],
+         "est_dcm" = e[[2]],
+         "tmse"    = tmse,
+         "lam"     = lam)
+  },
+  s = sites, e = splined, tmse = tmses, lam = lam, SIMPLIFY = FALSE)
 
-                }
-              }
+  # mat_based next
+  #out_mat <- list("inputs" = do.call('rbind', sites),
+  #                "est_1cm" = )
+#
+  out
 
-              if (show.progress) { setTxtProgressBar(pb, st)  }
-            }
-            if (show.progress) {
-              close(pb)
-              #cat(st, "\r")  ## TH: Suggested by D. Rossiter but not required
-              #flush.console()
-            }
-
-            ## asthetics for output
-            ## yave
-            yave<- as.data.frame(yave)
-            jmat<- matrix(NA, ncol = 1, nrow = length(d))
-            for (i in 1:length(d) - 1) {
-              a1 <- paste(d[i], d[ i + 1], sep= "-")
-              a1 <- paste(a1, "cm", sep=" ")
-              jmat[i] <- a1
-              }
-            jmat[length(d)] <- "soil depth"
-            for (jj in 1:length(jmat)) {
-              names(yave)[jj] <- jmat[jj]
-            }
-
-            retval <- list(idcol = objd_m[, 1],
-                           var.fitted = dave,
-                           var.std = yave,
-                           var.1cm = t(m_fyfit))
-
-            return(retval)
 }
-
-# end of script;
 
