@@ -15,8 +15,8 @@ respectively. Subsequent columns will contain measured values for those
 depths. For SoilProfileCollections, the `@horizons` slot must be similarly
 arranged, and the `@idcol` and `@depthcol` slots must be correctly defined.}
 
-\item{var_name}{length-1 character denoting the column in `obj` in which
-target data is stored.}
+\item{var_name}{length-1 character or length-1 integer denoting the column in
+`obj` in which target data is stored.}
 
 \item{lam}{number; smoothing parameter for spline. Defaults to 0.1.}
 

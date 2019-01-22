@@ -9,7 +9,14 @@ test_that("mpspline_conv works for numeric matrices",
                           ncol = 4, byrow = FALSE),
             fixed <- mpspline_conv(obj),
             expect_is(fixed, 'data.frame'),
-            expect_equal(nrow(fixed), 8)
+            expect_equal(nrow(fixed), 8),
+            # whoops, site IDs aren't numeric!
+            obj <- matrix(c("a", "a", "a", 0, 10, 20, 10, 20, 30, 4.5, 6, 7.8),
+                          ncol = 4, byrow = FALSE),
+            fx <- mpspline_conv(obj),
+            expect_is(fx, 'data.frame'),
+            expect_equal(nrow(fx), 3),
+            expect_is(fx[[2]], 'numeric')
           )
         )
 
@@ -72,7 +79,22 @@ test_that("mpspline_datchk does what it oughta",
                                          "VAL" = c(1,2,3,4),
                                          stringsAsFactors = FALSE)),
             expect_message(mpspline_datchk(ols, 'VAL')),
-            expect_equal(mpspline_datchk(ols, 'VAL')[[1]], NA)
+            expect_equal(mpspline_datchk(ols, 'VAL')[[1]], NA),
+            # single horizons
+            sh <-  list("A" = data.frame("SID" = "A",
+                                         "UD"  =   0,
+                                         "LD"  =  10,
+                                         "VAL" =   4,
+                                         stringsAsFactors = FALSE),
+                        "B" = data.frame("SID" = "B",
+                                         "UD"  =  60,
+                                         "LD"  =  80,
+                                         "VAL" =   5,
+                                         stringsAsFactors = FALSE)),
+            chkd <- mpspline_datchk(sh, 'VAL'),
+            expect_is(chkd, 'list'),
+            expect_equal(length(chkd), 2),
+            expect_equal(nrow(chkd[[1]]), 1)
           ))
 
 test_that("mpspline_est1 does the thing",
@@ -146,7 +168,7 @@ test_that("mpspline_fit1 does the thing",
             expect_is(f2[[2]], 'numeric'),
             expect_equal(length(f2), 2),
             expect_equal(length(f2[[1]]), 200),
-            expect_equal(sum(is.na(f2[[1]])) == 130),
+            expect_true(sum(is.na(f2[[1]])) == 130),
             expect_true(max(f2[[1]], na.rm = TRUE) <= 14),
             expect_true(min(f2[[1]], na.rm = TRUE) >= 0),
             expect_equal(length(f2[[2]]), 6),
@@ -162,7 +184,7 @@ test_that("mpspline_fit1 does the thing",
                                 d = c(0, 5, 15, 30, 60, 100, 200),
                                 vhigh = 14, vlow = 0),
             # still getting predictions in the same depth range as s1:
-            expect_equal(sum(is.na(f3[[1]])) == 130),
+            expect_true(sum(is.na(f3[[1]])) == 130),
             expect_true(max(f3[[1]], na.rm = TRUE) <= 14),
             expect_true(min(f3[[1]], na.rm = TRUE) >= 0),
             expect_equal(length(f3[[2]]), 6),
@@ -186,6 +208,47 @@ test_that("mpspline_fit1 does the thing",
             f5 <- mpspline_fit1(s = s4, p = p4, var_name = 'VAL',
                                 d = c(0, 5, 15, 30, 60, 100),
                                 vhigh = 14, vlow = 0),
-            # should rep pred at min depth up to 0
-            expect_true(all(is.na(f5[[1]][1:20])))
+            # no extrapolation, only interpolation!!
+            expect_true(all(is.na(f5[[1]][1:20]))),
+            expect_true(all(is.na(f5[[1]][71:100]))) # x[70] == 69-70cm
           ))
+
+test_that("mpspline_tmse1 does the thing",
+          c( s1 <- data.frame("SID" = c( 1,  1,  1,  1),
+                              "UD"  = c( 0, 20, 30, 50),
+                              "LD"  = c(20, 30, 50, 70),
+                              "VAL" = c( 6,  4,  3, 10),
+                              stringsAsFactors = FALSE),
+             p1 <- mpspline_est1(s1, 'VAL', lam = 0.1),
+             f1 <- mpspline_fit1(s = s1, p = p1, var_name = 'VAL',
+                                 d = c(0, 5, 15, 30, 60, 100, 200),
+                                 vhigh = 14, vlow = 0),
+             s_hat_5 <- (0.05 * stats::sd(s1[[4]], na.rm = TRUE))^2,
+             var_5 <- s_hat_5^2,
+             t1 <- mpspline_tmse1(s1, p1, var_name = 'VAL', s2 = var_5),
+             expect_equal(t1, 0.036610703692220463),
+             p <- list("s_bar" = NA, "b0" = NA, "b1" = NA, "gamma" = NA,
+                       "alfa" = NA, "Z" = NA),
+             expect_equal(mpspline_tmse1(s1, p, var_name = 'VAL',
+                                         s2 = var_5), NA_real_)
+          )
+        )
+
+test_that("mpspline_tmse1 does the thing",
+          c( s1 <-
+               data.frame("SID" = c( 1,  1,  1,  1,    2,   2,   2,  2,   3,    4,  5,  5),
+                          "UD"  = c( 0, 20, 30, 50,   -1,  45,  15, 80,   0,   30,  0, 30),
+                          "LD"  = c(20, 30, 50, 70,    5,  60,  30, NA,  10,   50, 10, 50),
+                          "VAL" = c( 6,  4,  3, 100, 0.1, 0.9, 2.5,  6, 3.5, 10.4, NA, NA),
+                              stringsAsFactors = FALSE),
+             m1 <- mpspline(s1, var_name = 'VAL',
+                            d = c(0, 5, 15, 30, 60, 100, 200),
+                            vhigh = 14, vlow = 0),
+             # var name skipped
+             expect_message(mpspline(s1, d = c(0, 5, 15, 30, 60, 100, 200),
+                                     vhigh = 14, vlow = 0)),
+             m2 <- mpspline(s1, d = c(0, 5, 15, 30, 60, 100, 200),
+                            vhigh = 14, vlow = 0),
+             expect_identical(m1, m2)
+          )
+)

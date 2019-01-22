@@ -12,8 +12,8 @@ mpspline_fit1(s = NULL, p = NULL, var_name = NULL, d = NULL,
 
 \item{p}{estimated spline parameters for one site}
 
-\item{var_name}{length-1 character denoting the column in `obj` in which
-target data is stored.}
+\item{var_name}{length-1 character or length-1 integer denoting the column in
+`obj` in which target data is stored.}
 
 \item{d}{sequential integer vector; denotes the output depth ranges in cm.
 Defaults to `c(0, 5, 15, 30, 60, 100, 200)` after the globalsoilmap.net

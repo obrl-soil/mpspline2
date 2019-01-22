@@ -21,15 +21,13 @@ mpspline_conv <- function(obj = NULL) {
 #' @method mpspline_conv matrix
 #'
 mpspline_conv.matrix <- function(obj = NULL) {
-  # check numeric
-  if(!typeof(obj) %in% c('double', 'integer')) {
-    stop('This is not a numeric matrix')
-    }
-
   # return df with some names set
-  obj <- as.data.frame(obj)
-  names(obj)[1:3] <- c('SID', 'UD', 'LD')
-  obj
+  out <- data.frame(obj, stringsAsFactors = FALSE)
+  if(typeof(obj) == 'character') {
+    out[, c(2:ncol(out))] <- as.numeric(unlist(out[, c(2:ncol(out))]))
+  }
+  names(out)[1:3] <- c('SID', 'UD', 'LD')
+  out
 }
 
 #' @rdname mpspline_conv
@@ -96,9 +94,11 @@ mpspline_datchk <- function(sites = NULL, var_name = NULL) {
     rownames(s) <- NULL
 
     # Drop sites with overlapping data depth ranges
-    if(any(s[[2]][2:nrs] < s[[3]][1:(nrs - 1)], na.rm = TRUE)) {
-      message("Overlapping depth ranges detected in site ", names(sites)[i], '.')
-      return(NA)
+    if(nrs > 1) {
+      if(any(s[[2]][2:nrs] < s[[3]][1:(nrs - 1)], na.rm = TRUE)) {
+        message("Overlapping depth ranges detected in site ", names(sites)[i], '.')
+        return(NA)
+      }
     }
 
     s
@@ -318,8 +318,8 @@ mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL, s2 = NULL) {
 #'   respectively. Subsequent columns will contain measured values for those
 #'   depths. For SoilProfileCollections, the `@horizons` slot must be similarly
 #'   arranged, and the `@idcol` and `@depthcol` slots must be correctly defined.
-#' @param var_name length-1 character denoting the column in `obj` in which
-#'   target data is stored.
+#' @param var_name length-1 character or length-1 integer denoting the column in
+#'   `obj` in which target data is stored.
 #' @param lam number; smoothing parameter for spline. Defaults to 0.1.
 #' @param d sequential integer vector; denotes the output depth ranges in cm.
 #'   Defaults to `c(0, 5, 15, 30, 60, 100, 200)` after the globalsoilmap.net
@@ -348,6 +348,12 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
 
   # format input
   nice_obj <- mpspline_conv(obj)
+
+  # assume if varname missing (or conv from mat etc)
+  if(is.null(var_name)) {
+    message("Parameter var_name not supplied, assuming target data is in column 4.")
+    var_name <- 4
+  }
 
   # split input into a list by site
   sites <- split(nice_obj, as.factor(nice_obj[[1]]))
