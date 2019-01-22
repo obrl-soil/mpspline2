@@ -322,9 +322,9 @@ mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL, s2 = NULL) {
 #'   number. Defaults to 0.
 #' @param vhigh numeric; constrains the maximum predicted value to a realistic
 #'   number. Defaults to 1000.
-#' @return list of five data elements for each site - input data, predicted
-#'   values at each cm down the profile, predicted values over `d` intervals,
-#'   and TMSE.
+#' @return list of six data elements for each site - Site ID, predicted values
+#'   over input intervals, predicted values for each cm down the profile to
+#'   max(d), predicted values over `d` (output) intervals, TMSE and lam.
 #' @examples
 #' dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
 #'                    "UD" = c( 0, 20, 40, 60,   0,  15,  45,  80),
@@ -360,7 +360,7 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
     e <- mpspline_fit1(s, p, var_name = var_name,
                        d = d, vhigh = vhigh, vlow = vlow)
     t <- mpspline_tmse1(s, p, var_name = var_name, s2 = var_5)
-    list("inputs"  = s,
+    list("ID"  = s[[1]][1],
          # matches splinetool - should this return alfa tho?? :
          "est_ins" = if(all(is.na(p))) { NA_real_ } else { p[['s_bar']] },
          "est_1cm" = e[[1]],

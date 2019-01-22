@@ -32,9 +32,9 @@ number. Defaults to 0.}
 number. Defaults to 1000.}
 }
 \value{
-list of five data elements for each site - input data, predicted
-  values at each cm down the profile, predicted values over `d` intervals,
-  and TMSE.
+list of six data elements for each site - Site ID, predicted values
+  over input intervals, predicted values for each cm down the profile to
+  max(d), predicted values over `d` (output) intervals, TMSE and lam.
 }
 \description{
 This function implements the mass-preserving spline method of (Bishop et al
