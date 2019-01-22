@@ -218,19 +218,26 @@ mpspline_fit1 <- function(s = NULL, p = NULL, var_name = NULL,
   cm_ds <- (1:nj) - 1 # need 0-index to match splinetool.exe *sigh*
 
   # tag each depth with its membership layer number, NA for gaps
-  cm_h <- lapply(cm_ds, function(i) { which(s[[2]] <= i & s[[3]] > i) })
-  cm_h[length(cm_h) == 0] <- NA_integer_
-  cm_h <- unlist(cm_h, use.names = FALSE)
+  cm_h <- sapply(cm_ds, function(i) {
+    x <- which(s[[2]] <= i & s[[3]] > i)
+    if(length(x) == 0) { NA_integer_ } else { x }
+    })
 
   est_1cm <- sapply(cm_ds, function(k) {  # for every cm to max(d); 0 = 0 - 1 cm
-    # if input data from profile starts below surface, return alfa of first
-    # available horizon for all depths above s[[2]][1]:
+    # if input data from profile starts below surface, return NA until s[[2]][1]
+    # is reached.
     if (k < s[[2]][1]) {
-      return(alfa[1])
+      return(NA_real_)
     }
-    # NB splinetool.exe does something different, but not better IMO - looks
-    # like it can over or underestimate where a 0-x sample is not present.
-    # NB Would be more conservative to refuse to predict above the first sample.
+    # Re: above, splinetool.exe continues to extrapolate outside the input depth
+    # ranges which can lead to substantial over-/underpredictions in the
+    # surface. GSIF::mpspline appears to attempt to compensate by repeating the
+    # prediction for the shallowest 'known' 1cm slice back up to the surface.
+    # This is more conservative but still carries out *extrapolation* with an
+    # *interpolation* algorithm. I argue that this is not appropriate. If a
+    # surface value is missing, either go get it measured or explicitly insert
+    # an expert-knowledge-based or PTF'd surface value into the data before
+    # splining.
 
     h <- cm_h[k + 1] # uuugghhhhhhh
 
@@ -369,7 +376,6 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
          "lam"     = lam)
     })
 
-  ### TO DO: tests for mpspline_fit1
   ### TO DO: tests for mpspline_tsme1
   ### TO DO: Outputs - make a condensed option? List of dataframes
   splined

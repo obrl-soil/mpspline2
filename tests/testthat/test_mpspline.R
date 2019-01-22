@@ -117,35 +117,75 @@ test_that("mpspline_est1 does the thing",
 test_that("mpspline_fit1 does the thing",
           c(
             # single horizon
-            s <- data.frame("SID" = "A", "UD" = 0, "LD" = 10, "VAL" = 5.4),
-            spar <- mpspline_est1(s, 'VAL', lam = 0.1),
-            expect_message( mpspline_fit1(s = s, p = spar, var_name = 'VAL',
+            s1 <- data.frame("SID" = "A", "UD" = 0, "LD" = 10, "VAL" = 5.4),
+            p1 <- mpspline_est1(s1, 'VAL', lam = 0.1),
+            expect_message(mpspline_fit1(s = s1, p = p1, var_name = 'VAL',
                                           d = c(0, 5, 15, 30, 60, 100, 200),
                                           vhigh = 14, vlow = 0)),
-            ft1 <- mpspline_fit1(s = s, p = spar, var_name = 'VAL',
+            f1 <- mpspline_fit1(s = s1, p = p1, var_name = 'VAL',
                                  d = c(0, 5, 15, 30, 60, 100, 200),
                                  vhigh = 14, vlow = 0),
-            expect_is(ft1, 'list'),
-            expect_equal(length(ft1), 2),
-            expect_equal(ft1[[1]][1], s[[4]]),
-            expect_equal(ft1[[1]][11], NA_real_),
-            expect_equal(ft1[[2]][1], s[[4]]),
-            expect_equal(ft1[[2]][3], NA_real_),
+            expect_is(f1, 'list'),
+            expect_equal(length(f1), 2),
+            expect_equal(f1[[1]][1], s1[[4]]),
+            expect_equal(f1[[1]][11], NA_real_),
+            expect_equal(f1[[2]][1], s1[[4]]),
+            expect_equal(f1[[2]][3], NA_real_),
             # normal no gaps
-            obj <- data.frame("SID" = c( 1,  1,  1,  1),
-                              "UD"  = c( 0, 20, 30, 50),
-                              "LD"  = c(20, 30, 50, 70),
-                              "VAL" = c( 6,  4,  3, 10),
-                              stringsAsFactors = FALSE)
-
+            s2 <- data.frame("SID" = c( 1,  1,  1,  1),
+                             "UD"  = c( 0, 20, 30, 50),
+                             "LD"  = c(20, 30, 50, 70),
+                             "VAL" = c( 6,  4,  3, 10),
+                              stringsAsFactors = FALSE),
+            p2 <- mpspline_est1(s2, 'VAL', lam = 0.1),
+            f2 <- mpspline_fit1(s = s2, p = p2, var_name = 'VAL',
+                                 d = c(0, 5, 15, 30, 60, 100, 200),
+                                 vhigh = 14, vlow = 0),
+            expect_is(f2, 'list'),
+            expect_is(f2[[1]], 'numeric'),
+            expect_is(f2[[2]], 'numeric'),
+            expect_equal(length(f2), 2),
+            expect_equal(length(f2[[1]]), 200),
+            expect_equal(sum(is.na(f2[[1]])) == 130),
+            expect_true(max(f2[[1]], na.rm = TRUE) <= 14),
+            expect_true(min(f2[[1]], na.rm = TRUE) >= 0),
+            expect_equal(length(f2[[2]]), 6),
+            expect_true(sum(is.na(f2[[2]])) == 1),
             # gaps
-
-
-            # stops short of max d
-
-
+            s3 <- data.frame("SID" = c( 1,  1,  1),
+                             "UD"  = c( 0, 30, 50),
+                             "LD"  = c(20, 50, 70),
+                             "VAL" = c( 6,  3, 10),
+                             stringsAsFactors = FALSE),
+            p3 <- mpspline_est1(s3, 'VAL', lam = 0.1),
+            f3 <- mpspline_fit1(s = s3, p = p3, var_name = 'VAL',
+                                d = c(0, 5, 15, 30, 60, 100, 200),
+                                vhigh = 14, vlow = 0),
+            # still getting predictions in the same depth range as s1:
+            expect_equal(sum(is.na(f3[[1]])) == 130),
+            expect_true(max(f3[[1]], na.rm = TRUE) <= 14),
+            expect_true(min(f3[[1]], na.rm = TRUE) >= 0),
+            expect_equal(length(f3[[2]]), 6),
+            expect_true(sum(is.na(f3[[2]])) == 1),
+            # deeper than max d - should just truncate
+            f4 <- mpspline_fit1(s = s2, p = p2, var_name = 'VAL',
+                                d = c(0, 5, 15, 30),
+                                vhigh = 14, vlow = 0),
+            expect_equal(length(f4[[1]]), 30),
+            expect_true(sum(is.na(f4[[1]])) == 0),
+            expect_equal(length(f4[[2]]), 3),
+            expect_true(sum(is.na(f4[[2]])) == 0),
+            expect_equal(f2[[2]][1:3], f4[[2]]),
             # starts below surface
-
-
-
+            s4 <- data.frame("SID" = c( 1,  1,  1),
+                             "UD"  = c(20, 30, 50),
+                             "LD"  = c(30, 50, 70),
+                             "VAL" = c( 4,  3, 10),
+                             stringsAsFactors = FALSE),
+            p4 <- mpspline_est1(s4, 'VAL', lam = 0.1),
+            f5 <- mpspline_fit1(s = s4, p = p4, var_name = 'VAL',
+                                d = c(0, 5, 15, 30, 60, 100),
+                                vhigh = 14, vlow = 0),
+            # should rep pred at min depth up to 0
+            expect_true(all(is.na(f5[[1]][1:20])))
           ))
