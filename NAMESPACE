@@ -2,4 +2,3 @@
 
 export(mpspline)
 importFrom(stats,sd)
-importFrom(utils,tail)

@@ -8,8 +8,8 @@ mpspline(obj = NULL, var_name = NULL, lam = 0.1, d = c(0, 5, 15,
   30, 60, 100, 200), vlow = 0, vhigh = 1000)
 }
 \arguments{
-\item{obj}{Object of class SoilProfileCollection (aqp) or data frame or
-matrix. For data frames and matrices, column 1 must contain site
+\item{obj}{Object of class SoilProfileCollection (see package 'aqp') or data
+frame or matrix. For data frames and matrices, column 1 must contain site
 identifiers. Columns 2 and 3 must contain upper and lower sample depths,
 respectively. Subsequent columns will contain measured values for those
 depths. For SoilProfileCollections, the `@horizons` slot must be similarly
@@ -37,8 +37,8 @@ list of five data elements for each site - input data, predicted
   and TMSE.
 }
 \description{
-This function implements the mass-preserving spline method of Bishop et al
-(1999) - http://dx.doi.org/10.1016/S0016-7061(99)00003-8] for interpolating
+This function implements the mass-preserving spline method of (Bishop et al
+(1999))[http://dx.doi.org/10.1016/S0016-7061(99)00003-8] for interpolating
 between measured soils data parameters down a profile.
 }
 \examples{

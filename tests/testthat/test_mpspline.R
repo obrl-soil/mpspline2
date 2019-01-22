@@ -88,20 +88,20 @@ test_that("mpspline_est1 does the thing",
             expect_is(spar, 'list'),
             expect_equal(length(spar), 6),
             expect_equal(names(spar), c("s_bar", "b0", "b1", "gamma", "alfa", "Z")),
-            expect_is(spar[[1]], 'matrix'),
-            expect_equal(dim(spar[[1]])[1], 4),
+            expect_is(spar[[1]], 'numeric'),
+            expect_equal(length(spar[[1]]), 4),
             expect_equivalent(spar[[1]][1], 5.3938765799840498),
-            expect_is(spar[[2]], 'matrix'),
-            expect_equal(nrow(spar[[2]]), 4),
+            expect_is(spar[[2]], 'numeric'),
+            expect_equal(length(spar[[2]]), 4),
             expect_equivalent(spar[[2]][1], 0),
-            expect_is(spar[[3]], 'matrix'),
-            expect_equal(nrow(spar[[3]]), 4),
+            expect_is(spar[[3]], 'numeric'),
+            expect_equal(length(spar[[3]]), 4),
             expect_equivalent(spar[[3]][1], -0.015308550039877671),
-            expect_is(spar[[4]], 'matrix'),
-            expect_equal(nrow(spar[[4]]), 4),
+            expect_is(spar[[4]], 'numeric'),
+            expect_equal(length(spar[[4]]), 4),
             expect_equivalent(spar[[4]][1], -0.00076542750199388358),
-            expect_is(spar[[5]], 'matrix'),
-            expect_equal(nrow(spar[[5]]), 4),
+            expect_is(spar[[5]], 'numeric'),
+            expect_equal(length(spar[[5]]), 4),
             expect_equivalent(spar[[5]][1], 5.4193908300505127),
             expect_is(spar[[6]], 'matrix'),
             expect_equal(nrow(spar[[6]]), 4),
@@ -110,7 +110,7 @@ test_that("mpspline_est1 does the thing",
             s <- data.frame("SID" = "A", "UD" = 0, "LD"  = 10, "VAL" = 5.4,
                             stringsAsFactors = FALSE),
             spar <- mpspline_est1(s, 'VAL', lam = 0.1),
-            expect_equal(spar, NA)
+            expect_equal(spar, NA_real_)
             )
           )
 
@@ -130,8 +130,13 @@ test_that("mpspline_fit1 does the thing",
             expect_equal(ft1[[1]][1], s[[4]]),
             expect_equal(ft1[[1]][11], NA_real_),
             expect_equal(ft1[[2]][1], s[[4]]),
-            expect_equal(ft1[[2]][3], NA_real_)
+            expect_equal(ft1[[2]][3], NA_real_),
             # normal no gaps
+            obj <- data.frame("SID" = c( 1,  1,  1,  1),
+                              "UD"  = c( 0, 20, 30, 50),
+                              "LD"  = c(20, 30, 50, 70),
+                              "VAL" = c( 6,  4,  3, 10),
+                              stringsAsFactors = FALSE)
 
             # gaps
 
