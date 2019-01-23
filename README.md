@@ -5,14 +5,14 @@
 mpspline2
 =========
 
-This package is a space to re-work `GSIF::mpspline()`, because the doco says it needs tidying up.
+This package is a space to re-work [`GSIF::mpspline()`](https://r-forge.r-project.org/scm/viewvc.php/pkg/R/mpspline.R?view=markup&revision=240&root=gsif), because the doco says it needs tidying up.
 
 This is only set up as a package so I could use `testthat` and `roxygen2` easily. Also I don't understand SCM repositories, and don't really want to &gt;.&gt;
 
 Installation
 ------------
 
-Don't! Or use `devtools::install_github('obrl-soil/mpspline2)`, I'm not the boss of you.
+Don't! Or use `devtools::install_github('obrl-soil/mpspline2')`, I'm not the boss of you.
 
 Outcome
 -------
