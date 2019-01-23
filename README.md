@@ -1,5 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+[![Travis build status](https://travis-ci.com/obrl-soil/mpspline2.svg?branch=master)](https://travis-ci.com/obrl-soil/mpspline2) [![Coverage status](https://codecov.io/gh/obrl-soil/mpspline2/branch/master/graph/badge.svg)](https://codecov.io/github/obrl-soil/mpspline2?branch=master)
+
 mpspline2
 =========
 
@@ -29,6 +31,7 @@ Worse:
 ???:
 
 -   Refuses to predict 1cm values outside input data range (on purpose).
+-   Refuses to deal with sites that have overlapping horizons (on purpose).
 -   Default return object is different. 'Classic' option is available.
 
 ------------------------------------------------------------------------

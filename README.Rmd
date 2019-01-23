@@ -12,6 +12,10 @@ knitr::opts_chunk$set(
   out.width = "100%"
 )
 ```
+
+[![Travis build status](https://travis-ci.com/obrl-soil/mpspline2.svg?branch=master)](https://travis-ci.com/obrl-soil/mpspline2)
+[![Coverage status](https://codecov.io/gh/obrl-soil/mpspline2/branch/master/graph/badge.svg)](https://codecov.io/github/obrl-soil/mpspline2?branch=master)
+
 # mpspline2
 
 This package is a space to re-work `GSIF::mpspline()`, because the doco says it needs tidying up.
@@ -38,6 +42,7 @@ Worse:
 ???:
 
   * Refuses to predict 1cm values outside input data range (on purpose).
+  * Refuses to deal with sites that have overlapping horizons (on purpose).
   * Default return object is different. 'Classic' option is available.
   
 ***

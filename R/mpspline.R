@@ -268,7 +268,6 @@ mpspline_fit1 <- function(s = NULL, p = NULL, var_name = NULL,
   # NB doesn't match current mpspline but does match splinetool.exe
   est_dcm <- mapply(function(u, l) { mean(est_1cm[u:l], na.rm = TRUE) },
                     u = d[1:length(d) - 1] + 1, l = d[2:length(d)])
-  #names(est_dcm) <- nms
   est_dcm[is.nan(est_dcm)] <- NA_real_
 
   # return list with 1cm and dcm as vectors
