@@ -24,7 +24,7 @@ This is only set up as a package so I could use `testthat` and `roxygen2` easily
 
 ## Installation
 
-Don't! Or use `devtools::install_github('obrl-soil/mpspline2)`, I'm not the boss of you.
+Don't! Or use `devtools::install_github('obrl-soil/mpspline2')`, I'm not the boss of you.
 
 ## Outcome
 
