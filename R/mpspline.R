@@ -171,7 +171,7 @@ mpspline_est1 <- function(s = NULL, var_name = NULL, lam = NULL) {
   gamma <- (b1 - b0) / (th * 2)
   alfa  <- s_bar - b0 * th / 2 - gamma * th^2/3
 
-  # just return the stuff needed for subsequent steps (decompose to vec or nah?)
+  # just return the stuff needed for subsequent steps
   list("s_bar" = s_bar, "b0" = b0, "b1" = b1,
        "gamma" = gamma, "alfa" = alfa, "Z" = Z)
 }
@@ -195,7 +195,7 @@ mpspline_fit1 <- function(s = NULL, p = NULL, var_name = NULL,
     ld <- s[[3]]
     not_1cm <- rep(NA_real_, times = md)
     not_1cm[ud:ld] <- s[[var_name]]
-    not_dcm <- rep(NA_real_, times = length(d))
+    not_dcm <- rep(NA_real_, times = length(d) - 1)
     not_dcm[which(d >= ud & d <= ld)] <- s[[var_name]]
     # constrain input data to supplied limits
     not_1cm[which(not_1cm > vhigh)] <- vhigh
@@ -311,7 +311,7 @@ mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL, s2 = NULL) {
 #'
 #' This function implements the mass-preserving spline method of (Bishop et al
 #' (1999))[http://dx.doi.org/10.1016/S0016-7061(99)00003-8] for interpolating
-#' between measured soils data parameters down a profile.
+#' between measured soil attributes down a soil profile.
 #' @param obj Object of class SoilProfileCollection (see package 'aqp') or data
 #'   frame or matrix. For data frames and matrices, column 1 must contain site
 #'   identifiers. Columns 2 and 3 must contain upper and lower sample depths,
@@ -319,7 +319,8 @@ mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL, s2 = NULL) {
 #'   depths. For SoilProfileCollections, the `@horizons` slot must be similarly
 #'   arranged, and the `@idcol` and `@depthcol` slots must be correctly defined.
 #' @param var_name length-1 character or length-1 integer denoting the column in
-#'   `obj` in which target data is stored.
+#'   `obj` in which target data is stored. If not supplied, the fourth column of
+#'   the input object is assumed to contain the target data.
 #' @param lam number; smoothing parameter for spline. Defaults to 0.1.
 #' @param d sequential integer vector; denotes the output depth ranges in cm.
 #'   Defaults to `c(0, 5, 15, 30, 60, 100, 200)` after the globalsoilmap.net
@@ -329,9 +330,19 @@ mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL, s2 = NULL) {
 #'   number. Defaults to 0.
 #' @param vhigh numeric; constrains the maximum predicted value to a realistic
 #'   number. Defaults to 1000.
-#' @return list of six data elements for each site - Site ID, predicted values
-#'   over input intervals, predicted values for each cm down the profile to
-#'   max(d), predicted values over `d` (output) intervals, TMSE and lam.
+#' @param out_style One of "default" or "classic".
+#' @return \itemize{
+#'   \item For `out_style = 'default'`, a nested list of data for each input
+#'   site. List elements are: Site ID, vector of predicted values over input
+#'   intervals, vector of predicted values for each cm down the profile to
+#'   max(d), vector of predicted values over `d` (output) intervals, and TMSE.
+#'   \item For `out_style = 'classic'`, a five-item list containing a vector of
+#'   site IDs, a matrix of predicted values over the input depth ranges, a data
+#'   frame of predicted values over the output depth ranges, a matrix of 1cm
+#'   predictions, and a vector of TMSE values. Structure closely mimics the
+#'   output of \code{\link[GSIF:mpspline]{GSIF::mpspline()}}, use this option if
+#'   you don't have time to redraft an existing workflow.
+#'   }
 #' @examples
 #' dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
 #'                    "UD" = c( 0, 20, 40, 60,   0,  15,  45,  80),
@@ -344,7 +355,10 @@ mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL, s2 = NULL) {
 #'
 mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
                      d = c(0, 5, 15, 30, 60, 100, 200),
-                     vlow = 0, vhigh = 1000) {
+                     vlow = 0, vhigh = 1000,
+                     out_style = c('default', 'classic')) {
+
+  out_style <- match.arg(out_style, c('default', 'classic'))
 
   # format input
   nice_obj <- mpspline_conv(obj)
@@ -375,14 +389,34 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
     t <- mpspline_tmse1(s, p, var_name = var_name, s2 = var_5)
     list("ID"  = s[[1]][1],
          # matches splinetool - should this return alfa tho?? :
-         "est_ins" = if(all(is.na(p))) { NA_real_ } else { p[['s_bar']] },
+         "est_ins" = if(all(is.na(p))) { s[[var_name]][1] } else { p[['s_bar']] },
          "est_1cm" = e[[1]],
          "est_dcm" = e[[2]],
-         "tmse"    = t,
-         "lam"     = lam)
+         "tmse"    = t)
     })
 
-  ### TO DO: tests for mpspline_tsme1
-  ### TO DO: Outputs - make a condensed option? List of dataframes
-  splined
+  if(out_style == 'default') { return(splined) }
+  if(out_style == 'classic') { # warning: causes slowdown
+    mh <- max(sapply(splined, function(i) length(i[[2]])), na.rm =TRUE)
+
+    dnms <- mapply(function(u,l) {
+     paste0(sprintf('%03d', u), '_', sprintf('%03d', l), '_cm')
+    }, u = d[1:(length(d) - 1)], l = d[2:length(d)])
+
+    list('idcol' = sapply(splined, function(i) i[[1]]),
+         'var.fitted' = t(sapply(splined, function(i) {
+           x <- rep(NA, mh)
+           x[1:length(i[[2]])] <- i[[2]]
+           x
+         }, USE.NAMES = FALSE)),
+         'var.std' = {
+           x <- t(sapply(splined, function(i) { i[[4]] }))
+           x <- data.frame(x)
+           names(x) <- dnms
+           x$soil_depth <- sapply(sites, function(i) max(i[[3]]))
+           x
+         },
+         'var.1cm' = sapply(splined, function(i) { i[[3]] }),
+         'tmse' = sapply(splined, function(i) { i[[5]] }) )
+  }
 }

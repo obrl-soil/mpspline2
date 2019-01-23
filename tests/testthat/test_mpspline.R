@@ -234,7 +234,7 @@ test_that("mpspline_tmse1 does the thing",
           )
         )
 
-test_that("mpspline_tmse1 does the thing",
+test_that("mpspline does the thing",
           c( s1 <-
                data.frame("SID" = c( 1,  1,  1,  1,    2,   2,   2,  2,   3,    4,  5,  5),
                           "UD"  = c( 0, 20, 30, 50,   -1,  45,  15, 80,   0,   30,  0, 30),
@@ -244,11 +244,40 @@ test_that("mpspline_tmse1 does the thing",
              m1 <- mpspline(s1, var_name = 'VAL',
                             d = c(0, 5, 15, 30, 60, 100, 200),
                             vhigh = 14, vlow = 0),
+             expect_is(m1, 'list'),
+             expect_equal(length(m1), 4),
+             expect_is(m1[[1]], 'list'),
+             expect_equal(length(m1[[1]]), 5),
+             expect_is(m1[[1]][[1]], 'numeric'),
+             expect_is(m1[[1]][[2]], 'numeric'),
+             expect_is(m1[[1]][[3]], 'numeric'),
+             expect_is(m1[[1]][[4]], 'numeric'),
+             expect_is(m1[[1]][[5]], 'numeric'),
+             expect_length(m1[[1]][[1]], 1),
+             expect_length(m1[[1]][[2]], 4),
+             expect_length(m1[[1]][[3]], 200),
+             expect_length(m1[[1]][[4]], 6),
+             expect_length(m1[[1]][[5]], 1),
+             expect_equal(m1[[3]][[2]], 3.5),
              # var name skipped
              expect_message(mpspline(s1, d = c(0, 5, 15, 30, 60, 100, 200),
                                      vhigh = 14, vlow = 0)),
              m2 <- mpspline(s1, d = c(0, 5, 15, 30, 60, 100, 200),
                             vhigh = 14, vlow = 0),
-             expect_identical(m1, m2)
+             expect_identical(m1, m2),
+             # classic style output
+             m3 <-  mpspline(s1, d = c(0, 5, 15, 30, 60, 100, 200),
+                             vhigh = 14, vlow = 0, out_style = 'classic'),
+             expect_is(m3, 'list'),
+             expect_equal(length(m3), 5),
+             expect_equal(m3[[1]], seq(4)),
+             expect_is(m3[[2]], 'matrix'),
+             expect_equal(dim(m3[[2]]), c(4, 4)),
+             expect_is(m3[[3]], 'data.frame'),
+             expect_equal(nrow(m3[[3]]), 4),
+             expect_is(m3[[4]], 'matrix'),
+             expect_equal(dim(m3[[4]]), c(200, 4)),
+             expect_is(m3[[5]], 'numeric'),
+             expect_equal(length(m3[[5]]), 4)
           )
 )

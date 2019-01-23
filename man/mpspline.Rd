@@ -5,7 +5,8 @@
 \title{Spline discrete soils data}
 \usage{
 mpspline(obj = NULL, var_name = NULL, lam = 0.1, d = c(0, 5, 15,
-  30, 60, 100, 200), vlow = 0, vhigh = 1000)
+  30, 60, 100, 200), vlow = 0, vhigh = 1000, out_style = c("default",
+  "classic"))
 }
 \arguments{
 \item{obj}{Object of class SoilProfileCollection (see package 'aqp') or data
@@ -16,7 +17,8 @@ depths. For SoilProfileCollections, the `@horizons` slot must be similarly
 arranged, and the `@idcol` and `@depthcol` slots must be correctly defined.}
 
 \item{var_name}{length-1 character or length-1 integer denoting the column in
-`obj` in which target data is stored.}
+`obj` in which target data is stored. If not supplied, the fourth column of
+the input object is assumed to contain the target data.}
 
 \item{lam}{number; smoothing parameter for spline. Defaults to 0.1.}
 
@@ -30,16 +32,27 @@ number. Defaults to 0.}
 
 \item{vhigh}{numeric; constrains the maximum predicted value to a realistic
 number. Defaults to 1000.}
+
+\item{out_style}{One of "default" or "classic".}
 }
 \value{
-list of six data elements for each site - Site ID, predicted values
-  over input intervals, predicted values for each cm down the profile to
-  max(d), predicted values over `d` (output) intervals, TMSE and lam.
+\itemize{
+  \item For `out_style = 'default'`, a nested list of data for each input
+  site. List elements are: Site ID, vector of predicted values over input
+  intervals, vector of predicted values for each cm down the profile to
+  max(d), vector of predicted values over `d` (output) intervals, and TMSE.
+  \item For `out_style = 'classic'`, a five-item list containing a vector of
+  site IDs, a matrix of predicted values over the input depth ranges, a data
+  frame of predicted values over the output depth ranges, a matrix of 1cm
+  predictions, and a vector of TMSE values. Structure closely mimics the
+  output of \code{\link[GSIF:mpspline]{GSIF::mpspline()}}, use this option if
+  you don't have time to redraft an existing workflow.
+  }
 }
 \description{
 This function implements the mass-preserving spline method of (Bishop et al
 (1999))[http://dx.doi.org/10.1016/S0016-7061(99)00003-8] for interpolating
-between measured soils data parameters down a profile.
+between measured soil attributes down a soil profile.
 }
 \examples{
 dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
