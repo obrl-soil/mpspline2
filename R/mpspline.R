@@ -178,12 +178,17 @@ mpspline_est1 <- function(s = NULL, var_name = NULL, lam = NULL) {
   # solve Z for the input data values
   s_bar <- solve(Z, s[[var_name]])
 
+  # name s_bar with input depth ranges
+  names(s_bar) <- mapply(function(u, l) {
+    paste0(sprintf('%03d', u), '_', sprintf('%03d', l), '_cm')
+  }, u = as.integer(s[[2]]), l = as.integer(s[[3]]))
+
   # calculate the fitted value at the knots (middle of each input range)
   b     <- as.vector(6 * R_inv %*% Q %*% s_bar)
   b0    <- c(0, b)
   b1    <- c(b, 0)
   gamma <- (b1 - b0) / (th * 2)
-  alfa  <- s_bar - b0 * th / 2 - gamma * th^2/3
+  alfa  <- s_bar - b0 * th / 2 - gamma * th^2/3 # nb s_bar names inherit
 
   # just return the stuff needed for subsequent steps
   list("s_bar" = s_bar, "b0" = b0, "b1" = b1,
@@ -225,6 +230,7 @@ mpspline_fit1 <- function(s = NULL, p = NULL, var_name = NULL,
   b1    <- p[['b1']]
   gamma <- p[['gamma']]
   alfa  <- p[['alfa']]
+  names(alfa) <- NULL
 
   nj <- max(s[[3]])
   if (nj > md) { nj <- md } # if profile > max d, ignore the deeper part
@@ -408,13 +414,18 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
          "tmse"    = t)
     })
 
+  dnms <- mapply(function(u, l) {
+    paste0(sprintf('%03d', u), '_', sprintf('%03d', l), '_cm')
+  }, u = d[1:(length(d) - 1)], l = d[2:length(d)])
+
+  splined <- lapply(splined, function(x) {
+    names(x[['est_dcm']]) <- dnms
+    x
+    })
+
   if(out_style == 'default') { return(splined) }
   if(out_style == 'classic') { # warning: causes slowdown
     mh <- max(sapply(splined, function(i) length(i[[2]])), na.rm =TRUE)
-
-    dnms <- mapply(function(u,l) {
-     paste0(sprintf('%03d', u), '_', sprintf('%03d', l), '_cm')
-    }, u = d[1:(length(d) - 1)], l = d[2:length(d)])
 
     list('idcol' = sapply(splined, function(i) i[[1]]),
          'var.fitted' = t(sapply(splined, function(i) {
