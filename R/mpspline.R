@@ -41,28 +41,28 @@ mpspline_conv.data.frame <- function(obj = NULL) {
 #' @rdname mpspline_conv
 #' @inherit mpspline_conv return
 #' @method mpspline_conv SoilProfileCollection
+#' @importFrom aqp horizonDepths horizons idname
 #'
 mpspline_conv.SoilProfileCollection <- function(obj = NULL) {
   # profile ID field name, set at SPC init time
-  ic <- idname(obj)
-  
+  ic <- aqp::idname(obj)
+
   # horizon depth field names, set at SPC init time
-  dc <- horizonDepths(obj)
-  
+  dc <- aqp::horizonDepths(obj)
+
   # horizon level attributes, includes IDs and depths
-  h <- horizons(obj)
-  
+  h <- aqp::horizons(obj)
+
   # horizon level field names, minus IDs and depths
   ac <- names(h)[-which(names(h) %in% c(ic, dc))]
-  
+
   # re-order to expected format: ID, top, bottom, {everything else}
-  h <- h[, c(ic, dc, ac)]
-  
-  # site data are lost
-  # spatia data are lost
+  h[, c(ic, dc, ac)]
+
+  # nb site data are lost
+  # spatial data are lost
   # diagnostic features are lost
   # done, stringsAsFactors logic mirrors source data
-  return(h)
 }
 
 #' pre-spline data checks
