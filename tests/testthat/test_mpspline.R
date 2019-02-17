@@ -234,7 +234,7 @@ test_that("mpspline_tmse1 does the thing",
           )
         )
 
-test_that("mpspline does the thing",
+test_that("mpspline works with default output",
           c( s1 <-
                data.frame("SID" = c( 1,  1,  1,  1,    2,   2,   2,  2,   3,    4,  5,  5),
                           "UD"  = c( 0, 20, 30, 50,   -1,  45,  15, 80,   0,   30,  0, 30),
@@ -264,8 +264,32 @@ test_that("mpspline does the thing",
                                      vhigh = 14, vlow = 0)),
              m2 <- mpspline(s1, d = c(0, 5, 15, 30, 60, 100, 200),
                             vhigh = 14, vlow = 0),
-             expect_identical(m1, m2),
-             # classic style output
+             expect_identical(m1, m2)
+          )
+)
+
+test_that("mpspline works with spc output",
+          c( s1 <-
+               data.frame("SID" = c( 1,  1,  1,  1,    2,   2,   2,  2,   3,    4,  5,  5),
+                          "UD"  = c( 0, 20, 30, 50,   -1,  45,  15, 80,   0,   30,  0, 30),
+                          "LD"  = c(20, 30, 50, 70,    5,  60,  30, NA,  10,   50, 10, 50),
+                          "VAL" = c( 6,  4,  3, 100, 0.1, 0.9, 2.5,  6, 3.5, 10.4, NA, NA),
+                          stringsAsFactors = FALSE),
+             m2 <-  mpspline(s1, d = c(0, 5, 15, 30, 60, 100, 200),
+                             vhigh = 14, vlow = 0, out_style = 'spc'),
+             expect_is(m2, 'SoilProfileCollection'),
+             expect_equal(nrow(aqp::horizons(m2)), 196),
+             expect_equal(nrow(aqp::site(m2)), 12)
+          )
+)
+
+test_that("mpspline works with classic output",
+          c( s1 <-
+               data.frame("SID" = c( 1,  1,  1,  1,    2,   2,   2,  2,   3,    4,  5,  5),
+                          "UD"  = c( 0, 20, 30, 50,   -1,  45,  15, 80,   0,   30,  0, 30),
+                          "LD"  = c(20, 30, 50, 70,    5,  60,  30, NA,  10,   50, 10, 50),
+                          "VAL" = c( 6,  4,  3, 100, 0.1, 0.9, 2.5,  6, 3.5, 10.4, NA, NA),
+                          stringsAsFactors = FALSE),
              m3 <-  mpspline(s1, d = c(0, 5, 15, 30, 60, 100, 200),
                              vhigh = 14, vlow = 0, out_style = 'classic'),
              expect_is(m3, 'list'),

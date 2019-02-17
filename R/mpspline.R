@@ -349,12 +349,14 @@ mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL, s2 = NULL) {
 #'   number. Defaults to 0.
 #' @param vhigh numeric; constrains the maximum predicted value to a realistic
 #'   number. Defaults to 1000.
-#' @param out_style One of "default" or "classic".
+#' @param out_style One of "default", "spc", or "classic".
 #' @return \itemize{
 #'   \item For `out_style = 'default'`, a nested list of data for each input
 #'   site. List elements are: Site ID, vector of predicted values over input
 #'   intervals, vector of predicted values for each cm down the profile to
 #'   max(d), vector of predicted values over `d` (output) intervals, and TMSE.
+#'   \item For `out_style = 'spc'`, a SoilProfileCollection object containing
+#'   all inputs and outputs.
 #'   \item For `out_style = 'classic'`, a five-item list containing a vector of
 #'   site IDs, a matrix of predicted values over the input depth ranges, a data
 #'   frame of predicted values over the output depth ranges, a matrix of 1cm
@@ -369,15 +371,16 @@ mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL, s2 = NULL) {
 #'                   "VAL" = c( 6,  4,  3, 10, 0.1, 0.9, 2.5,   6),
 #'                    stringsAsFactors = FALSE)
 #' mpspline(obj = dat, var_name = 'VAL')
-#' @importFrom stats sd
+#' @importFrom aqp depths<- horizons<- site
+#' @importFrom stats as.formula sd
 #' @export
 #'
 mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
                      d = c(0, 5, 15, 30, 60, 100, 200),
                      vlow = 0, vhigh = 1000,
-                     out_style = c('default', 'classic')) {
+                     out_style = c('default', 'spc', 'classic')) {
 
-  out_style <- match.arg(out_style, c('default', 'classic'))
+  out_style <- match.arg(out_style, c('default', 'spc', 'classic'))
 
   # format input
   nice_obj <- mpspline_conv(obj)
@@ -385,7 +388,7 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
   # assume if varname missing (or conv from mat etc)
   if(is.null(var_name)) {
     message("Parameter var_name not supplied, assuming target data is in column 4.")
-    var_name <- 4
+    var_name <- names(nice_obj)[4]
   }
 
   # split input into a list by site
@@ -400,31 +403,69 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
   s_hat_5 <- (0.05 * stats::sd(cl_dat, na.rm = TRUE))^2
   var_5 <- s_hat_5^2
 
+  dnms <- mapply(function(u, l) {
+    paste0(sprintf('%03d', u), '_', sprintf('%03d', l), '_cm')
+  }, u = d[1:(length(d) - 1)], l = d[2:length(d)])
+
   # estimate spline parameters for each site and fit
   splined <- lapply(sites, function(s) {
     p <- mpspline_est1(s, var_name = var_name, lam = lam)
     e <- mpspline_fit1(s, p, var_name = var_name,
                        d = d, vhigh = vhigh, vlow = vlow)
     t <- mpspline_tmse1(s, p, var_name = var_name, s2 = var_5)
-    list("ID"  = s[[1]][1],
+    out <- list("ID" = s[[1]][1],
          # matches splinetool - should this return alfa tho?? :
          "est_ins" = if(all(is.na(p))) { s[[var_name]][1] } else { p[['s_bar']] },
          "est_1cm" = e[[1]],
          "est_dcm" = e[[2]],
          "tmse"    = t)
-    })
-
-  dnms <- mapply(function(u, l) {
-    paste0(sprintf('%03d', u), '_', sprintf('%03d', l), '_cm')
-  }, u = d[1:(length(d) - 1)], l = d[2:length(d)])
-
-  splined <- lapply(splined, function(x) {
-    names(x[['est_dcm']]) <- dnms
-    x
+    names(out)[1] <- names(nice_obj)[1] # preserve input SID name
+    names(out[['est_dcm']]) <- dnms     # name est_dcm like est_ins
+    out
     })
 
   if(out_style == 'default') { return(splined) }
-  if(out_style == 'classic') { # warning: causes slowdown
+
+  if(out_style == 'spc') {
+    #build a SoilProfileCollection object containing old and new data
+    all_df <- mapply(function(orig, spln) {
+      df_1cm <- data.frame(paste0(spln[[1]], '_1cm'),
+                           seq(spln[[3]]) - 1, seq(spln[[3]]),
+                           spln[[3]], spln[[5]])
+      names(df_1cm) <- c(names(nice_obj)[1], 'UD_cm', 'LD_cm', var_name, 'tmse')
+      df_1cm <- df_1cm[!is.na(df_1cm[[var_name]]), ]
+
+      df_dcm <- data.frame(paste0(spln[[1]], '_dcm'),
+                           d[1:(length(d) - 1)], d[2:length(d)],
+                           spln[[4]], spln[[5]])
+      names(df_dcm) <- names(df_1cm)
+      df_dcm <- df_dcm[!is.na(df_dcm[[var_name]]), ]
+
+      df_icm <- orig[, c(1, 2, 3, which(names(orig) == var_name))]
+      df_icm[[1]] <- paste0(df_icm[[1]], '_icm')
+      df_icm$tmse <- NA_real_
+      names(df_icm) <- names(df_dcm)
+
+      out <- rbind(df_icm, df_dcm, df_1cm)
+      out$group_id <- spln[[1]]
+      out
+    }, orig = sites, spln = splined, SIMPLIFY = FALSE)
+    all_df <- do.call('rbind', all_df)
+    rownames(all_df) <- seq(dim(all_df)[1])
+    nm <- names(all_df)
+    fm <- as.formula(sprintf("%s ~ %s + %s", nm[1], nm[2], nm[3]))
+    depths(all_df) <- fm
+    all_df@site$group_id <- gsub('.{4}$', '', site(all_df)[[1]]) # i know but!
+    all_df@site$type_id <- substr(site(all_df)[[1]],
+                                  nchar(site(all_df)[[1]])- 2,
+                                  nchar(site(all_df)[[1]]))
+    all_df@site$type_id <- as.factor(all_df@site$type_id)
+    # tmse at site level???
+    horizons(all_df)$group_id <- NULL
+    return(all_df)
+  }
+
+  if(out_style == 'classic') {
     mh <- max(sapply(splined, function(i) length(i[[2]])), na.rm =TRUE)
 
     list('idcol' = sapply(splined, function(i) i[[1]]),

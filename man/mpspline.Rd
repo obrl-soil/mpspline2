@@ -6,7 +6,7 @@
 \usage{
 mpspline(obj = NULL, var_name = NULL, lam = 0.1, d = c(0, 5, 15,
   30, 60, 100, 200), vlow = 0, vhigh = 1000, out_style = c("default",
-  "classic"))
+  "spc", "classic"))
 }
 \arguments{
 \item{obj}{Object of class SoilProfileCollection (see package 'aqp') or data
@@ -33,7 +33,7 @@ number. Defaults to 0.}
 \item{vhigh}{numeric; constrains the maximum predicted value to a realistic
 number. Defaults to 1000.}
 
-\item{out_style}{One of "default" or "classic".}
+\item{out_style}{One of "default", "spc", or "classic".}
 }
 \value{
 \itemize{
@@ -41,6 +41,8 @@ number. Defaults to 1000.}
   site. List elements are: Site ID, vector of predicted values over input
   intervals, vector of predicted values for each cm down the profile to
   max(d), vector of predicted values over `d` (output) intervals, and TMSE.
+  \item For `out_style = 'spc'`, a SoilProfileCollection object containing
+  all inputs and outputs.
   \item For `out_style = 'classic'`, a five-item list containing a vector of
   site IDs, a matrix of predicted values over the input depth ranges, a data
   frame of predicted values over the output depth ranges, a matrix of 1cm
