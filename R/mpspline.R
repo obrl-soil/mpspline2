@@ -427,7 +427,6 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
   if(out_style == 'default') { return(splined) }
 
   if(out_style == 'spc') {
-    #build a SoilProfileCollection object containing old and new data
     all_df <- mapply(function(orig, spln) {
       df_1cm <- data.frame(paste0(spln[[1]], '_1cm'),
                            seq(spln[[3]]) - 1, seq(spln[[3]]),
@@ -455,10 +454,9 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
     nm <- names(all_df)
     fm <- as.formula(sprintf("%s ~ %s + %s", nm[1], nm[2], nm[3]))
     depths(all_df) <- fm
-    all_df@site$group_id <- gsub('.{4}$', '', site(all_df)[[1]]) # i know but!
-    all_df@site$type_id <- substr(site(all_df)[[1]],
-                                  nchar(site(all_df)[[1]])- 2,
-                                  nchar(site(all_df)[[1]]))
+    sids <- site(all_df)[[1]]
+    all_df@site$group_id <- gsub('.{4}$', '', sids) # i know but!
+    all_df@site$type_id <- substr(sids, nchar(sids)- 2, nchar(sids))
     all_df@site$type_id <- as.factor(all_df@site$type_id)
     # tmse at site level???
     horizons(all_df)$group_id <- NULL
