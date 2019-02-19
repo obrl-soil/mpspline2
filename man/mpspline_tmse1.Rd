@@ -2,7 +2,7 @@
 % Please edit documentation in R/mpspline.R
 \name{mpspline_tmse1}
 \alias{mpspline_tmse1}
-\title{calculate TSME}
+\title{calculate TMSE}
 \usage{
 mpspline_tmse1(s = NULL, p = NULL, var_name = NULL, s2 = NULL)
 }

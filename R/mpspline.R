@@ -294,7 +294,7 @@ mpspline_fit1 <- function(s = NULL, p = NULL, var_name = NULL,
   list("est_1cm" = est_1cm, "est_dcm" = est_dcm)
 }
 
-#' calculate TSME
+#' calculate TMSE
 #'
 #' Calculates Total Mean Squared Error (TMSE) for a single site
 #' @param s site data frame
@@ -415,7 +415,7 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
     t <- mpspline_tmse1(s, p, var_name = var_name, s2 = var_5)
     out <- list("ID" = s[[1]][1],
          # matches splinetool - should this return alfa tho?? :
-         "est_ins" = if(all(is.na(p))) { s[[var_name]][1] } else { p[['s_bar']] },
+         "est_icm" = if(all(is.na(p))) { s[[var_name]][1] } else { p[['s_bar']] },
          "est_1cm" = e[[1]],
          "est_dcm" = e[[2]],
          "tmse"    = t)
@@ -428,38 +428,39 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
 
   if(out_style == 'spc') {
     all_df <- mapply(function(orig, spln) {
-      df_1cm <- data.frame(paste0(spln[[1]], '_1cm'),
+      sidnm <- names(nice_obj)[1]
+      df_1cm <- data.frame(spln[[1]], '1cm',
                            seq(spln[[3]]) - 1, seq(spln[[3]]),
                            spln[[3]], spln[[5]])
-      names(df_1cm) <- c(names(nice_obj)[1], 'UD_cm', 'LD_cm', var_name, 'tmse')
+      names(df_1cm) <- c(sidnm, 'est', 'UD_cm', 'LD_cm', var_name, 'tmse')
       df_1cm <- df_1cm[!is.na(df_1cm[[var_name]]), ]
 
-      df_dcm <- data.frame(paste0(spln[[1]], '_dcm'),
+      df_dcm <- data.frame(spln[[1]], 'dcm',
                            d[1:(length(d) - 1)], d[2:length(d)],
-                           spln[[4]], spln[[5]])
+                           spln[[4]], spln[[5]], row.names = NULL)
       names(df_dcm) <- names(df_1cm)
       df_dcm <- df_dcm[!is.na(df_dcm[[var_name]]), ]
 
-      df_icm <- orig[, c(1, 2, 3, which(names(orig) == var_name))]
-      df_icm[[1]] <- paste0(df_icm[[1]], '_icm')
-      df_icm$tmse <- NA_real_
+      df_icm <-  data.frame(spln[[1]], 'icm',
+                            orig[[2]], orig[[3]],
+                            spln[[2]], spln[[5]], row.names = NULL)
       names(df_icm) <- names(df_dcm)
-
-      out <- rbind(df_icm, df_dcm, df_1cm)
-      out$group_id <- spln[[1]]
-      out
-    }, orig = sites, spln = splined, SIMPLIFY = FALSE)
+      rbind(df_icm, df_dcm, df_1cm)
+      },
+      orig = sites, spln = splined, SIMPLIFY = FALSE)
     all_df <- do.call('rbind', all_df)
     rownames(all_df) <- seq(dim(all_df)[1])
+    all_df <- cbind("id_est" = paste0(all_df[[1]], '_', all_df[[2]]),
+          all_df)
     nm <- names(all_df)
-    fm <- as.formula(sprintf("%s ~ %s + %s", nm[1], nm[2], nm[3]))
-    depths(all_df) <- fm
-    sids <- site(all_df)[[1]]
-    all_df@site$group_id <- gsub('.{4}$', '', sids) # i know but!
-    all_df@site$type_id <- substr(sids, nchar(sids)- 2, nchar(sids))
-    all_df@site$type_id <- as.factor(all_df@site$type_id)
-    # tmse at site level???
-    horizons(all_df)$group_id <- NULL
+    fm <- as.formula(sprintf("%s ~ %s + %s", nm[1], nm[4], nm[5]))
+    suppressWarnings(depths(all_df) <- fm)
+    nso <- horizons(all_df)[, seq(3)]
+    nso <- base::unique(nso)
+    nso$est <- base::ordered(nso$est,
+                             levels = c('icm', '1cm', 'dcm')) # overkill? nahhhh
+    rownames(nso) <- NULL
+    all_df@site <- nso
     return(all_df)
   }
 
