@@ -392,7 +392,7 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
   }
 
   # split input into a list by site
-  sites <- split(nice_obj, as.factor(nice_obj[[1]]))
+  sites <- base::split(nice_obj, as.factor(nice_obj[[1]]))
 
   # do some checks and tidying up
   sites <- mpspline_datchk(sites, var_name = var_name)
@@ -409,6 +409,9 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
 
   # estimate spline parameters for each site and fit
   splined <- lapply(sites, function(s) {
+    if(is.factor(s[[1]])) {
+      s[[1]] <- as.character(s[[1]])
+    } # duplicating factors in ID field = giant return obj :(
     p <- mpspline_est1(s, var_name = var_name, lam = lam)
     e <- mpspline_fit1(s, p, var_name = var_name,
                        d = d, vhigh = vhigh, vlow = vlow)
