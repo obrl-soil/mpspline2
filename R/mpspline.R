@@ -427,8 +427,8 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
   if(out_style == 'default') { return(splined) }
 
   if(out_style == 'spc') {
+    sidnm <- names(nice_obj)[1]
     all_df <- mapply(function(orig, spln) {
-      sidnm <- names(nice_obj)[1]
       df_1cm <- data.frame(spln[[1]], '1cm',
                            seq(spln[[3]]) - 1, seq(spln[[3]]),
                            spln[[3]], spln[[5]])
@@ -450,8 +450,9 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
       orig = sites, spln = splined, SIMPLIFY = FALSE)
     all_df <- do.call('rbind', all_df)
     rownames(all_df) <- seq(dim(all_df)[1])
-    all_df <- cbind("id_est" = paste0(all_df[[1]], '_', all_df[[2]]),
+    all_df <- cbind(paste0(all_df[[1]], '_', all_df[[2]]),
           all_df)
+    names(all_df)[1] <- paste0(sidnm, "_est")
     nm <- names(all_df)
     fm <- as.formula(sprintf("%s ~ %s + %s", nm[1], nm[4], nm[5]))
     suppressWarnings(depths(all_df) <- fm)
