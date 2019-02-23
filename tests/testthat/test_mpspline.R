@@ -49,53 +49,49 @@ test_that("mpspline_conv works for SoilProfileCollections",
 
 test_that("mpspline_datchk does what it oughta",
           c(
-            obj <-  data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
-                               "UD"  = c(NA, 20, 40, 60,  -1,  45,  15,  80),
-                               "LD"  = c(10, 30, 50, 70,   5,  60,  30,  NA),
-                               "VAL" = c( 6,  4,  3, 10, 0.1, 0.9, 2.5,   6),
+            obj <-  data.frame("SID" = 1,
+                               "UD"  = c(NA, 20, 40, 60),
+                               "LD"  = c(10, 30, 50, NA),
+                               "VAL" = c( 6,  4,  3, 10),
                                stringsAsFactors = FALSE),
-            obj <- mpspline_conv(obj),
-            sites <- split(obj, as.factor(obj[[1]])),
-            chkd <- mpspline_datchk(sites, 'VAL'),
-            expect_is(chkd, 'list'),
-            expect_equal(length(chkd), 2),
-            expect_is(chkd[[1]], 'data.frame'),
-            expect_equal(nrow(chkd[[1]]), 4),
-            expect_equal(nrow(chkd[[2]]), 3),  # -ve hor dropped
-            expect_equal(chkd[[1]][[2]][1], 0), # surface fixed
-            expect_equal(chkd[[2]][[3]][3], 90), # last fixed
+            chkd <- mpspline_datchk(obj, 'VAL'),
+            expect_is(chkd, 'data.frame'),
+            expect_equal(nrow(chkd), 4),
+            expect_equal(chkd[[2]][1], 0), # surface fixed
+            expect_equal(chkd[[3]][4], 70), # last fixed
+            obj2 <- data.frame("SID" = c( 1,  1,  1,  1),
+                               "UD"  = c(-5, 20, 40, 60),
+                               "LD"  = c(10, 30, 50, 90),
+                               "VAL" = c( 6,  4,  3, 10),
+                               stringsAsFactors = FALSE),
+            chkd2 <- mpspline_datchk(obj2, 'VAL'),
+            expect_equal(nrow(chkd2), 3),  # -ve hor dropped
             # all na
-            allna <- list("A" = data.frame("SID" = "A",
-                                           "UD"  = c(0, 30, 60, 90),
-                                           "LD"  = c(30, 60, 90 ,120),
-                                           "VAL" = NA_real_,
-                                           stringsAsFactors = FALSE)),
+            allna <- data.frame("SID" = "A",
+                                "UD"  = c(0, 30, 60, 90),
+                                "LD"  = c(30, 60, 90 ,120),
+                                "VAL" = NA_real_,
+                                stringsAsFactors = FALSE),
             expect_message(mpspline_datchk(allna, 'VAL')),
-            expect_equal(mpspline_datchk(allna, 'VAL')[[1]], NA),
+            expect_equal(mpspline_datchk(allna, 'VAL'), NA),
             # overlap
-            ols <- list("A" = data.frame("SID" = "A",
-                                         "UD"  = c(0, 30, 50, 90),
-                                         "LD"  = c(30, 60, 100 ,120),
-                                         "VAL" = c(1,2,3,4),
-                                         stringsAsFactors = FALSE)),
+            ols <- data.frame("SID" = "A",
+                              "UD"  = c(0, 30, 50, 90),
+                              "LD"  = c(30, 60, 100 ,120),
+                              "VAL" = c(1,2,3,4),
+                              stringsAsFactors = FALSE),
             expect_message(mpspline_datchk(ols, 'VAL')),
-            expect_equal(mpspline_datchk(ols, 'VAL')[[1]], NA),
-            # single horizons
-            sh <-  list("A" = data.frame("SID" = "A",
-                                         "UD"  =   0,
-                                         "LD"  =  10,
-                                         "VAL" =   4,
-                                         stringsAsFactors = FALSE),
-                        "B" = data.frame("SID" = "B",
-                                         "UD"  =  60,
-                                         "LD"  =  80,
-                                         "VAL" =   5,
-                                         stringsAsFactors = FALSE)),
+            expect_equal(mpspline_datchk(ols, 'VAL'), NA),
+            # single horizon unharmed
+            sh <- data.frame("SID" = "A",
+                             "UD"  =   0,
+                             "LD"  =  10,
+                             "VAL" =   4,
+                             stringsAsFactors = FALSE),
             chkd <- mpspline_datchk(sh, 'VAL'),
-            expect_is(chkd, 'list'),
-            expect_equal(length(chkd), 2),
-            expect_equal(nrow(chkd[[1]]), 1)
-          ))
+            expect_identical(sh, chkd)
+          )
+)
 
 test_that("mpspline_est1 does the thing",
           c(
@@ -234,6 +230,51 @@ test_that("mpspline_tmse1 does the thing",
           )
         )
 
+test_that("mpspline_one returns correctly",
+          c(
+            s1 <-
+              data.frame("SID" = c("A"),
+                         "UD"  = c(  0,  20,  30,  50),
+                         "LD"  = c( 20,  30,  50,  70),
+                         "VAL" = c(  6,   4,   3, 100),
+                         stringsAsFactors = FALSE),
+            m1 <- mpspline_one(s1, var_name = 'VAL', lam = 0.1,
+                           d = c(0, 5, 15, 30, 60, 100, 200),
+                           vhigh = 14, vlow = 0),
+            expect_is(m1, 'list'),
+            expect_equal(length(m1), 5),
+            expect_is(m1[[1]], 'character'),
+            expect_is(m1[[2]], 'numeric'),
+            expect_is(m1[[3]], 'numeric'),
+            expect_is(m1[[4]], 'numeric'),
+            expect_is(m1[[5]], 'numeric'),
+            expect_length(m1[[1]], 1),
+            expect_length(m1[[2]], 4),
+            expect_length(m1[[3]], 200),
+            expect_length(m1[[4]], 6),
+            expect_length(m1[[5]], 1),
+            # var name skipped
+            expect_message(
+              mpspline_one(s1, d = c(0, 5, 15, 30, 60, 100, 200),
+                              vhigh = 14, vlow = 0)),
+            m2 <- mpspline_one(s1, d = c(0, 5, 15, 30, 60, 100, 200),
+                                  vhigh = 14, vlow = 0),
+            expect_identical(m1, m2),
+            # test non df input
+            s1$SID <- 1,
+            s2 <- as.matrix(s1),
+            m3 <-  mpspline_one(s2, d = c(0, 5, 15, 30, 60, 100, 200),
+                                vhigh = 14, vlow = 0),
+            expect_identical(m1[[3]], m3[[3]]),
+            # fctr SID
+            s3 <- s1,
+            s3[[1]] <- as.factor(s3[[1]]),
+            m4 <-  mpspline_one(s3, d = c(0, 5, 15, 30, 60, 100, 200),
+                                vhigh = 14, vlow = 0),
+            expect_identical(m1[[3]], m4[[3]]),
+            expect_is(m4[[1]], 'character')
+          ))
+
 test_that("mpspline works with default output",
           c( s1 <-
                data.frame("SID" = c( "A",  "A",  "A",  "A",    "B",   "B",   "B",  "B",   "C",    "D",  "E",  5),
@@ -241,7 +282,7 @@ test_that("mpspline works with default output",
                           "LD"  = c(20, 30, 50, 70,    5,  60,  30, NA,  10,   50, 10, 50),
                           "VAL" = c( 6,  4,  3, 100, 0.1, 0.9, 2.5,  6, 3.5, 10.4, NA, NA),
                               stringsAsFactors = FALSE),
-             m1 <- mpspline(s1, var_name = 'VAL',
+             m1 <- mpspline(s1, var_name = 'VAL', lam = 0.1,
                             d = c(0, 5, 15, 30, 60, 100, 200),
                             vhigh = 14, vlow = 0),
              expect_is(m1, 'list'),
@@ -265,43 +306,5 @@ test_that("mpspline works with default output",
              m2 <- mpspline(s1, d = c(0, 5, 15, 30, 60, 100, 200),
                             vhigh = 14, vlow = 0),
              expect_identical(m1, m2)
-          )
-)
-
-test_that("mpspline works with spc output",
-          c( s1 <-
-               data.frame("SID" = c( 1,  1,  1,  1,    2,   2,   2,  2,   3,    4,  5,  5),
-                          "UD"  = c( 0, 20, 30, 50,   -1,  45,  15, 80,   0,   30,  0, 30),
-                          "LD"  = c(20, 30, 50, 70,    5,  60,  30, NA,  10,   50, 10, 50),
-                          "VAL" = c( 6,  4,  3, 100, 0.1, 0.9, 2.5,  6, 3.5, 10.4, NA, NA),
-                          stringsAsFactors = FALSE),
-             m2 <-  mpspline(s1, d = c(0, 5, 15, 30, 60, 100, 200),
-                             vhigh = 14, vlow = 0, out_style = 'spc'),
-             expect_is(m2, 'SoilProfileCollection'),
-             expect_equal(nrow(aqp::horizons(m2)), 196),
-             expect_equal(nrow(aqp::site(m2)), 12)
-          )
-)
-
-test_that("mpspline works with classic output",
-          c( s1 <-
-               data.frame("SID" = c( 1,  1,  1,  1,    2,   2,   2,  2,   3,    4,  5,  5),
-                          "UD"  = c( 0, 20, 30, 50,   -1,  45,  15, 80,   0,   30,  0, 30),
-                          "LD"  = c(20, 30, 50, 70,    5,  60,  30, NA,  10,   50, 10, 50),
-                          "VAL" = c( 6,  4,  3, 100, 0.1, 0.9, 2.5,  6, 3.5, 10.4, NA, NA),
-                          stringsAsFactors = FALSE),
-             m3 <-  mpspline(s1, d = c(0, 5, 15, 30, 60, 100, 200),
-                             vhigh = 14, vlow = 0, out_style = 'classic'),
-             expect_is(m3, 'list'),
-             expect_equal(length(m3), 5),
-             expect_equal(m3[[1]], seq(4)),
-             expect_is(m3[[2]], 'matrix'),
-             expect_equal(dim(m3[[2]]), c(4, 4)),
-             expect_is(m3[[3]], 'data.frame'),
-             expect_equal(nrow(m3[[3]]), 4),
-             expect_is(m3[[4]], 'matrix'),
-             expect_equal(dim(m3[[4]]), c(200, 4)),
-             expect_is(m3[[5]], 'numeric'),
-             expect_equal(length(m3[[5]]), 4)
           )
 )

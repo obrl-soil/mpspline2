@@ -4,13 +4,16 @@
 \alias{mpspline_datchk}
 \title{pre-spline data checks}
 \usage{
-mpspline_datchk(sites = NULL, var_name = NULL)
+mpspline_datchk(s = NULL, var_name = NULL)
 }
 \arguments{
-\item{sites}{list of appropriately formatted site data. Sites with no data to
-spline and sites with overlapping depth ranges return NA.}
+\item{s}{data frame, input data for a single soil profile.}
 
 \item{var_name}{target variable}
+}
+\value{
+If data passes checks it is returned unchanged. Sites with no data to
+  spline and sites with overlapping input depth ranges return NA.
 }
 \description{
 Runs a few data quality checks and makes some repairs where possible.
