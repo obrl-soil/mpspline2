@@ -315,10 +315,13 @@ mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL, s2 = NULL) {
   g     <- solve(Z)
   ei    <- eigen(g)$values
   df    <- n - sum(ei)
-  # sig2w <- ssq / df # not used
-  ## calculate the Carter and Eagleson estimate of residual variance
-  #dfc   <- n - 2 * sum(ei) + sum(ei^2)
-  # sig2c <- ssq / dfc # not used
+
+  #  these lines are not used in the final calc, wut?
+  ## sig2w <- ssq / df
+  ### calculate the Carter and Eagleson estimate of residual variance
+  ## dfc   <- n - 2 * sum(ei) + sum(ei^2)
+  ## sig2c <- ssq / dfc # not used
+
   ## calculate the estimate of the true mean squared error
   ssq / n - 2 * s2 * df / n + s2
 }
