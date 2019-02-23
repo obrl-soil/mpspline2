@@ -400,8 +400,7 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
 
   # cl_dat is all the data values in obj[[var_name]] post-clean
   cl_dat <- unlist(sapply(sites, function(i) i[[var_name]]), use.names = FALSE)
-  s_hat_5 <- (0.05 * stats::sd(cl_dat, na.rm = TRUE))^2
-  var_5 <- s_hat_5^2
+  var_5 <- (0.05 * stats::sd(cl_dat, na.rm = TRUE))^2
 
   dnms <- mapply(function(u, l) {
     paste0(sprintf('%03d', u), '_', sprintf('%03d', l), '_cm')
