@@ -36,7 +36,8 @@ number. Defaults to 1000.}
 A nested list of data for each input
   site. List elements are: Site ID, vector of predicted values over input
   intervals, vector of predicted values for each cm down the profile to
-  max(d), vector of predicted values over `d` (output) intervals, and TMSE.
+  max(d), vector of predicted values over `d` (output) intervals, and root
+  mean squared error.
 }
 \description{
 This function implements the mass-preserving spline method of (Bishop et al

@@ -1,3 +1,9 @@
+# v. 0.1.3
+
+  * output styles other than default shifted to wrapper functions
+  * revised RMSE calculation from BM (resolves issue #4)
+  * all component functions operate on a per-profile basis
+
 # v. 0.1.2
 
   * Added option for SoilProfileCollection-style output from `mpspline()`.

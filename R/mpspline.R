@@ -291,39 +291,27 @@ mpspline_fit1 <- function(s = NULL, p = NULL, var_name = NULL,
   list("est_1cm" = est_1cm, "est_dcm" = est_dcm)
 }
 
-#' calculate TMSE
+#' calculate RMSE
 #'
-#' Calculates Total Mean Squared Error (TMSE) for a single site
+#' Calculates Root Mean Squared Error (RMSE) for estimates on a single site
 #' @param s site data frame
 #' @param p estimated spline params for site
 #' @param var_name target variable
-#' @param s2 numeric, 5\% of the variance for the parent dataset
 #' @return numeric, tmse
 #' @keywords internal
+#' @note Useful for comparing the results of varying parameter `lam`. RMSE_IQR
+#' is the RMSE scaled to the IQR of the inputs.
+#' @importFrom stats IQR
 #'
-mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL, s2 = NULL) {
+mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL) {
   # single layer in input
   if(all(is.na(p))) {
-    return(NA_real_)
+    return(c('RMSE' = NA_real_, 'RMSE_IQR' = NA_real_))
   }
 
-  s_bar <- p[['s_bar']]
-  Z     <- p[['Z']]
-  n     <- dim(s)[1]
-
-  ssq   <- sum((s[[var_name]] - s_bar)^2)
-  g     <- solve(Z)
-  ei    <- eigen(g)$values
-  df    <- n - sum(ei)
-
-  #  these lines are not used in the final calc, wut?
-  ## sig2w <- ssq / df
-  ### calculate the Carter and Eagleson estimate of residual variance
-  ## dfc   <- n - 2 * sum(ei) + sum(ei^2)
-  ## sig2c <- ssq / dfc # not used
-
-  ## calculate the estimate of the true mean squared error
-  ssq / n - 2 * s2 * df / n + s2
+  rmse <- sqrt(sum((s[[var_name]] - p[['s_bar']])^2) / dim(s)[1] )
+  rmse_iqr <- rmse / stats::IQR(s[[var_name]])
+  c('RMSE' = rmse, 'RMSE_IQR' = rmse_iqr)
 }
 
 #' Spline discrete soils data - single site
@@ -350,7 +338,7 @@ mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL, s2 = NULL) {
 #' @return A list with the following elements: Site ID, vector of predicted
 #'   values over input intervals, vector of predicted values for each cm down
 #'   the profile to max(d), vector of predicted values over `d` (output)
-#'   intervals, and TMSE.
+#'   intervals, and root mean squared error.
 #' @examples
 #' dat <- data.frame("SID" = c( 1,  1,  1,  1),
 #'                    "UD" = c( 0, 20, 40, 60),
@@ -384,10 +372,8 @@ mpspline_one <- function(site = NULL, var_name = NULL, lam = 0.1,
   e <- mpspline_fit1(s, p, var_name = var_name,
                      d = d, vhigh = vhigh, vlow = vlow)
 
-  # not sure this is valid on a single site, but keeping for now
-  var_5 <- (0.05 * stats::sd(s[[var_name]], na.rm = TRUE))^2
   # estimate error
-  t <- mpspline_tmse1(s, p, var_name = var_name, s2 = var_5)
+  t <- mpspline_tmse1(s, p, var_name = var_name)
 
   if(is.factor(s[[1]])) {
     s[[1]] <- as.character(s[[1]])
@@ -400,7 +386,7 @@ mpspline_one <- function(site = NULL, var_name = NULL, lam = 0.1,
          "est_icm" = if(all(is.na(p))) { s[[var_name]][1] } else { p[['s_bar']] },
          "est_1cm" = e[[1]],
          "est_dcm" = e[[2]],
-         "tmse"    = t
+         "est_err" = t
          )
   # preserve input SID column name
   names(splined)[1] <- names(site)[1]
@@ -438,7 +424,8 @@ mpspline_one <- function(site = NULL, var_name = NULL, lam = 0.1,
 #' @return A nested list of data for each input
 #'   site. List elements are: Site ID, vector of predicted values over input
 #'   intervals, vector of predicted values for each cm down the profile to
-#'   max(d), vector of predicted values over `d` (output) intervals, and TMSE.
+#'   max(d), vector of predicted values over `d` (output) intervals, and root
+#'   mean squared error.
 #' @examples
 #' dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
 #'                    "UD" = c( 0, 20, 40, 60,   0,  15,  45,  80),

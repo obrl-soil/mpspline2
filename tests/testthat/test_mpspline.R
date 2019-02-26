@@ -219,14 +219,15 @@ test_that("mpspline_tmse1 does the thing",
              f1 <- mpspline_fit1(s = s1, p = p1, var_name = 'VAL',
                                  d = c(0, 5, 15, 30, 60, 100, 200),
                                  vhigh = 14, vlow = 0),
-             s_hat_5 <- (0.05 * stats::sd(s1[[4]], na.rm = TRUE))^2,
-             var_5 <- s_hat_5^2,
-             t1 <- mpspline_tmse1(s1, p1, var_name = 'VAL', s2 = var_5),
-             expect_equal(t1, 0.036610703692220463),
+             t1 <- mpspline_tmse1(s1, p1, var_name = 'VAL'),
+             expect_equal(length(t1), 2),
+             expect_equal(t1[[1]], 0.19001524938836459),
+             expect_equal(t1[[2]], 0.058466230581035256),
+             expect_equal(names(t1), c('RMSE', 'RMSE_IQR')),
              p <- list("s_bar" = NA, "b0" = NA, "b1" = NA, "gamma" = NA,
                        "alfa" = NA, "Z" = NA),
-             expect_equal(mpspline_tmse1(s1, p, var_name = 'VAL',
-                                         s2 = var_5), NA_real_)
+             expect_equal(mpspline_tmse1(s1, p, var_name = 'VAL'),
+                          c("RMSE" = NA_real_, "RMSE_IQR" = NA_real_))
           )
         )
 
@@ -252,7 +253,7 @@ test_that("mpspline_one returns correctly",
             expect_length(m1[[2]], 4),
             expect_length(m1[[3]], 200),
             expect_length(m1[[4]], 6),
-            expect_length(m1[[5]], 1),
+            expect_length(m1[[5]], 2),
             # var name skipped
             expect_message(
               mpspline_one(s1, d = c(0, 5, 15, 30, 60, 100, 200),
@@ -298,7 +299,7 @@ test_that("mpspline works with default output",
              expect_length(m1[[1]][[2]], 4),
              expect_length(m1[[1]][[3]], 200),
              expect_length(m1[[1]][[4]], 6),
-             expect_length(m1[[1]][[5]], 1),
+             expect_length(m1[[1]][[5]], 2),
              expect_equal(m1[[3]][[2]], 3.5),
              # var name skipped
              expect_message(mpspline(s1, d = c(0, 5, 15, 30, 60, 100, 200),

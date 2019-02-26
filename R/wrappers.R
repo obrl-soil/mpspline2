@@ -56,13 +56,13 @@ mpspline_compact <- function(obj = NULL, var_name = NULL, lam = 0.1,
 
   mh <- max(sapply(splined, function(i) length(i[[2]])), na.rm = TRUE)
 
-  list('ID' = sapply(splined, function(i) i[[1]]),
+  list(# don't need an ID - see dimnames(x) on each of the following:
        'est_icm' = t(sapply(splined, function(i) {
          x <- rep(NA, mh)
          x[1:length(i[[2]])] <- i[[2]]
          x
        }, USE.NAMES = FALSE)),
-       'est_1cm' = sapply(splined, function(i) { i[[3]] }),
+       'est_1cm' = t(sapply(splined, function(i) { i[[3]] })),
        'est_dcm' = {
          x <- t(sapply(splined, function(i) { i[[4]] }))
          names(x) <- mapply(function(u, l) {
@@ -71,8 +71,8 @@ mpspline_compact <- function(obj = NULL, var_name = NULL, lam = 0.1,
          depth <- sapply(sites[keep], function(i) max(i[[3]]))
          cbind(x, depth)
        },
-
-       'tmse' = sapply(splined, function(i) { i[[5]] }) )
+       'tmse' = t(sapply(splined, function(i) { i[[5]] }))
+  )
 
 }
 
@@ -145,19 +145,22 @@ mpspline_spc <- function(obj = NULL, var_name = NULL, lam = 0.1,
   all_df <- mapply(function(orig, spln) {
     df_1cm <- data.frame(spln[[1]], '1cm',
                          seq(spln[[3]]) - 1, seq(spln[[3]]),
-                         spln[[3]], spln[[5]])
-    names(df_1cm) <- c(sidnm, 'est', 'UD_cm', 'LD_cm', var_name, 'tmse')
+                         spln[[3]], spln[[5]][[1]], spln[[5]][[2]])
+    names(df_1cm) <- c(sidnm, 'est', 'UD_cm', 'LD_cm', var_name,
+                       'RMSE', 'RMSE_IQR')
     df_1cm <- df_1cm[!is.na(df_1cm[[var_name]]), ]
 
     df_dcm <- data.frame(spln[[1]], 'dcm',
                          d[1:(length(d) - 1)], d[2:length(d)],
-                         spln[[4]], spln[[5]], row.names = NULL)
+                         spln[[4]], spln[[5]][[1]], spln[[5]][[2]],
+                         row.names = NULL)
     names(df_dcm) <- names(df_1cm)
     df_dcm <- df_dcm[!is.na(df_dcm[[var_name]]), ]
 
     df_icm <-  data.frame(spln[[1]], 'icm',
                           orig[[2]], orig[[3]], # see whining above
-                          spln[[2]], spln[[5]], row.names = NULL)
+                          spln[[2]], spln[[5]][[1]], spln[[5]][[2]],
+                          row.names = NULL)
     names(df_icm) <- names(df_dcm)
     rbind(df_icm, df_dcm, df_1cm)
   },

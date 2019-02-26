@@ -2,9 +2,9 @@
 % Please edit documentation in R/mpspline.R
 \name{mpspline_tmse1}
 \alias{mpspline_tmse1}
-\title{calculate TMSE}
+\title{calculate RMSE}
 \usage{
-mpspline_tmse1(s = NULL, p = NULL, var_name = NULL, s2 = NULL)
+mpspline_tmse1(s = NULL, p = NULL, var_name = NULL)
 }
 \arguments{
 \item{s}{site data frame}
@@ -12,13 +12,15 @@ mpspline_tmse1(s = NULL, p = NULL, var_name = NULL, s2 = NULL)
 \item{p}{estimated spline params for site}
 
 \item{var_name}{target variable}
-
-\item{s2}{numeric, 5\% of the variance for the parent dataset}
 }
 \value{
 numeric, tmse
 }
 \description{
-Calculates Total Mean Squared Error (TMSE) for a single site
+Calculates Root Mean Squared Error (RMSE) for estimates on a single site
+}
+\note{
+Useful for comparing the results of varying parameter `lam`. RMSE_IQR
+is the RMSE scaled to the IQR of the inputs.
 }
 \keyword{internal}
