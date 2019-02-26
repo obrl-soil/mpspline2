@@ -297,13 +297,13 @@ mpspline_fit1 <- function(s = NULL, p = NULL, var_name = NULL,
 #' @param s site data frame
 #' @param p estimated spline params for site
 #' @param var_name target variable
-#' @return numeric, tmse
+#' @return length-2 named numeric - RMSE and RMSE scaled against input data's
+#'   interquartile range.
 #' @keywords internal
-#' @note Useful for comparing the results of varying parameter `lam`. RMSE_IQR
-#' is the RMSE scaled to the IQR of the inputs.
+#' @note Useful for comparing the results of varying parameter `lam`.
 #' @importFrom stats IQR
 #'
-mpspline_tmse1 <- function(s = NULL, p = NULL, var_name = NULL) {
+mpspline_rmse1 <- function(s = NULL, p = NULL, var_name = NULL) {
   # single layer in input
   if(all(is.na(p))) {
     return(c('RMSE' = NA_real_, 'RMSE_IQR' = NA_real_))
@@ -373,7 +373,7 @@ mpspline_one <- function(site = NULL, var_name = NULL, lam = 0.1,
                      d = d, vhigh = vhigh, vlow = vlow)
 
   # estimate error
-  t <- mpspline_tmse1(s, p, var_name = var_name)
+  t <- mpspline_rmse1(s, p, var_name = var_name)
 
   if(is.factor(s[[1]])) {
     s[[1]] <- as.character(s[[1]])

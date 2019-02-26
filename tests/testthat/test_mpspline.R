@@ -209,7 +209,7 @@ test_that("mpspline_fit1 does the thing",
             expect_true(all(is.na(f5[[1]][71:100]))) # x[70] == 69-70cm
           ))
 
-test_that("mpspline_tmse1 does the thing",
+test_that("mpspline_rmse1 does the thing",
           c( s1 <- data.frame("SID" = c( 1,  1,  1,  1),
                               "UD"  = c( 0, 20, 30, 50),
                               "LD"  = c(20, 30, 50, 70),
@@ -219,14 +219,14 @@ test_that("mpspline_tmse1 does the thing",
              f1 <- mpspline_fit1(s = s1, p = p1, var_name = 'VAL',
                                  d = c(0, 5, 15, 30, 60, 100, 200),
                                  vhigh = 14, vlow = 0),
-             t1 <- mpspline_tmse1(s1, p1, var_name = 'VAL'),
+             t1 <- mpspline_rmse1(s1, p1, var_name = 'VAL'),
              expect_equal(length(t1), 2),
              expect_equal(t1[[1]], 0.19001524938836459),
              expect_equal(t1[[2]], 0.058466230581035256),
              expect_equal(names(t1), c('RMSE', 'RMSE_IQR')),
              p <- list("s_bar" = NA, "b0" = NA, "b1" = NA, "gamma" = NA,
                        "alfa" = NA, "Z" = NA),
-             expect_equal(mpspline_tmse1(s1, p, var_name = 'VAL'),
+             expect_equal(mpspline_rmse1(s1, p, var_name = 'VAL'),
                           c("RMSE" = NA_real_, "RMSE_IQR" = NA_real_))
           )
         )
