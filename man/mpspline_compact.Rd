@@ -33,10 +33,11 @@ number. Defaults to 0.}
 number. Defaults to 1000.}
 }
 \value{
-A five-item list containing a vector of site IDs, a matrix of
+A four-item list containing a matrix of
   predicted values over the input depth ranges, a matrix of predicted
   values over the output depth ranges, a matrix of 1cm predictions, and a
-  vector of TMSE values.
+  matrix of RMSE and IQR-scaled RMSE values. Site identifiers are in rownames
+  attributes.
 }
 \description{
 This function implements the mass-preserving spline method of (Bishop et al

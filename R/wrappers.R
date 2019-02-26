@@ -23,10 +23,11 @@
 #'   number. Defaults to 0.
 #' @param vhigh numeric; constrains the maximum predicted value to a realistic
 #'   number. Defaults to 1000.
-#' @return A five-item list containing a vector of site IDs, a matrix of
+#' @return A four-item list containing a matrix of
 #'   predicted values over the input depth ranges, a matrix of predicted
 #'   values over the output depth ranges, a matrix of 1cm predictions, and a
-#'   vector of TMSE values.
+#'   matrix of RMSE and IQR-scaled RMSE values. Site identifiers are in rownames
+#'   attributes.
 #' @examples
 #' dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
 #'                    "UD" = c( 0, 20, 40, 60,   0,  15,  45,  80),
@@ -101,10 +102,9 @@ mpspline_compact <- function(obj = NULL, var_name = NULL, lam = 0.1,
 #'   number. Defaults to 0.
 #' @param vhigh numeric; constrains the maximum predicted value to a realistic
 #'   number. Defaults to 1000.
-#' @return A five-item list containing a vector of site IDs, a matrix of
-#'   predicted values over the input depth ranges, a matrix of predicted
-#'   values over the output depth ranges, a matrix of 1cm predictions, and a
-#'   vector of TMSE values.
+#' @return A SoilProfileCollection object containing spline predictions over
+#' the input depth ranges, the output depth ranges, and at 1cm intervals, along
+#' with root mean squared error (RMSE) and IQR-scaled RMSE.
 #' @examples
 #' dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
 #'                    "UD" = c( 0, 20, 40, 60,   0,  15,  45,  80),

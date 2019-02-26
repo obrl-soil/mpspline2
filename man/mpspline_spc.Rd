@@ -33,10 +33,9 @@ number. Defaults to 0.}
 number. Defaults to 1000.}
 }
 \value{
-A five-item list containing a vector of site IDs, a matrix of
-  predicted values over the input depth ranges, a matrix of predicted
-  values over the output depth ranges, a matrix of 1cm predictions, and a
-  vector of TMSE values.
+A SoilProfileCollection object containing spline predictions over
+the input depth ranges, the output depth ranges, and at 1cm intervals, along
+with root mean squared error (RMSE) and IQR-scaled RMSE.
 }
 \description{
 This function implements the mass-preserving spline method of (Bishop et al
