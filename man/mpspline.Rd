@@ -4,25 +4,32 @@
 \alias{mpspline}
 \title{Spline discrete soils data - multiple sites}
 \usage{
-mpspline(obj = NULL, var_name = NULL, lam = 0.1, d = c(0, 5, 15,
-  30, 60, 100, 200), vlow = 0, vhigh = 1000)
+mpspline(
+  obj = NULL,
+  var_name = NULL,
+  lam = 0.1,
+  d = c(0, 5, 15, 30, 60, 100, 200),
+  vlow = 0,
+  vhigh = 1000
+)
 }
 \arguments{
 \item{obj}{Object of class SoilProfileCollection (see package 'aqp') or data
 frame or matrix. For data frames and matrices, column 1 must contain site
 identifiers. Columns 2 and 3 must contain upper and lower sample depths,
 respectively. Subsequent columns will contain measured values for those
-depths. For SoilProfileCollections, the `@horizons` slot must be similarly
-arranged, and the `@idcol` and `@depthcol` slots must be correctly defined.}
+depths. For SoilProfileCollections, the \code{@horizons} slot must be
+similarly arranged, and the \code{@idcol} and \code{@depthcol} slots must
+be correctly defined.}
 
 \item{var_name}{length-1 character or length-1 integer denoting the column in
-`obj` in which target data is stored. If not supplied, the fourth column of
-the input object is assumed to contain the target data.}
+\code{obj} in which target data is stored. If not supplied, the fourth
+column of the input object is assumed to contain the target data.}
 
 \item{lam}{number; smoothing parameter for spline. Defaults to 0.1.}
 
 \item{d}{sequential integer vector; denotes the output depth ranges in cm.
-Defaults to `c(0, 5, 15, 30, 60, 100, 200)` after the globalsoilmap.net
+Defaults to \code{c(0, 5, 15, 30, 60, 100, 200)} after the GlobalSoilMap
 specification, giving output predictions over intervals 0-5cm, 5-15cm,
 etc.}
 
@@ -33,11 +40,10 @@ number. Defaults to 0.}
 number. Defaults to 1000.}
 }
 \value{
-A nested list of data for each input
-  site. List elements are: Site ID, vector of predicted values over input
-  intervals, vector of predicted values for each cm down the profile to
-  max(d), vector of predicted values over `d` (output) intervals, and root
-  mean squared error.
+A nested list of data for each input site. List elements are: Site
+  ID, vector of predicted values over input intervals, vector of predicted
+  values for each cm down the profile to \code{max(d)}, vector of predicted
+  values over \code{d} (output) intervals, and root mean squared error.
 }
 \description{
 This function implements the mass-preserving spline method of (Bishop et al

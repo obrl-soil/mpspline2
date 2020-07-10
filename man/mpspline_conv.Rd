@@ -20,8 +20,9 @@ mpspline_conv(obj = NULL)
 matrix. For data frames and matrices, column 1 must contain site
 identifiers. Columns 2 and 3 must contain upper and lower sample depths,
 respectively. Subsequent columns will contain measured values for those
-depths. For SoilProfileCollections, the `@horizons` slot must be similarly
-arranged, and the `@idcol` and `@depthcol` slots must be correctly defined.}
+depths. For SoilProfileCollections, the \code{@horizons} slot must be
+similarly arranged, and the \code{@idcol} and \code{@depthcol} slots must
+be correctly defined.}
 }
 \value{
 data frame, sorted by site ID, upper and lower depth.

@@ -9,14 +9,14 @@
 #'   frame or matrix. For data frames and matrices, column 1 must contain site
 #'   identifiers. Columns 2 and 3 must contain upper and lower sample depths,
 #'   respectively. Subsequent columns will contain measured values for those
-#'   depths. For SoilProfileCollections, the `@horizons` slot must be similarly
-#'   arranged, and the `@idcol` and `@depthcol` slots must be correctly defined.
+#'   depths. For SoilProfileCollections, the \code{@horizons} slot must be similarly
+#'   arranged, and the \code{@idcol} and \code{@depthcol} slots must be correctly defined.
 #' @param var_name length-1 character or length-1 integer denoting the column in
-#'   `obj` in which target data is stored. If not supplied, the fourth column of
+#'   \code{obj} in which target data is stored. If not supplied, the fourth column of
 #'   the input object is assumed to contain the target data.
 #' @param lam number; smoothing parameter for spline. Defaults to 0.1.
 #' @param d sequential integer vector; denotes the output depth ranges in cm.
-#'   Defaults to `c(0, 5, 15, 30, 60, 100, 200)` after the globalsoilmap.net
+#'   Defaults to \code{c(0, 5, 15, 30, 60, 100, 200)} after the GlobalSoilMap
 #'   specification, giving output predictions over intervals 0-5cm, 5-15cm,
 #'   etc.
 #' @param vlow numeric; constrains the minimum predicted value to a realistic
@@ -88,14 +88,14 @@ mpspline_compact <- function(obj = NULL, var_name = NULL, lam = 0.1,
 #'   frame or matrix. For data frames and matrices, column 1 must contain site
 #'   identifiers. Columns 2 and 3 must contain upper and lower sample depths,
 #'   respectively. Subsequent columns will contain measured values for those
-#'   depths. For SoilProfileCollections, the `@horizons` slot must be similarly
-#'   arranged, and the `@idcol` and `@depthcol` slots must be correctly defined.
+#'   depths. For SoilProfileCollections, the \code{@horizons} slot must be similarly
+#'   arranged, and the \code{@idcol} and \code{@depthcol} slots must be correctly defined.
 #' @param var_name length-1 character or length-1 integer denoting the column in
-#'   `obj` in which target data is stored. If not supplied, the fourth column of
+#'   \code{obj} in which target data is stored. If not supplied, the fourth column of
 #'   the input object is assumed to contain the target data.
 #' @param lam number; smoothing parameter for spline. Defaults to 0.1.
 #' @param d sequential integer vector; denotes the output depth ranges in cm.
-#'   Defaults to `c(0, 5, 15, 30, 60, 100, 200)` after the globalsoilmap.net
+#'   Defaults to \code{c(0, 5, 15, 30, 60, 100, 200)} after the GlobalSoilMap
 #'   specification, giving output predictions over intervals 0-5cm, 5-15cm,
 #'   etc.
 #' @param vlow numeric; constrains the minimum predicted value to a realistic

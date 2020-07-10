@@ -5,8 +5,9 @@
 #'   matrix. For data frames and matrices, column 1 must contain site
 #'   identifiers. Columns 2 and 3 must contain upper and lower sample depths,
 #'   respectively. Subsequent columns will contain measured values for those
-#'   depths. For SoilProfileCollections, the `@horizons` slot must be similarly
-#'   arranged, and the `@idcol` and `@depthcol` slots must be correctly defined.
+#'   depths. For SoilProfileCollections, the \code{@horizons} slot must be
+#'   similarly arranged, and the \code{@idcol} and \code{@depthcol} slots must
+#'   be correctly defined.
 #' @return data frame, sorted by site ID, upper and lower depth.
 #' @keywords internal
 #' @rdname mpspline_conv
@@ -45,13 +46,13 @@ mpspline_conv.data.frame <- function(obj = NULL) {
 #'
 mpspline_conv.SoilProfileCollection <- function(obj = NULL) {
   # profile ID field name, set at SPC init time
-  ic <- aqp::idname(obj)
+  ic <- idname(obj)
 
   # horizon depth field names, set at SPC init time
-  dc <- aqp::horizonDepths(obj)
+  dc <- horizonDepths(obj)
 
   # horizon level attributes, includes IDs and depths
-  h <- aqp::horizons(obj)
+  h <- horizons(obj)
 
   # horizon level field names, minus IDs and depths
   ac <- names(h)[-which(names(h) %in% c(ic, dc))]
@@ -69,7 +70,9 @@ mpspline_conv.SoilProfileCollection <- function(obj = NULL) {
 #'
 #' Runs a few data quality checks and makes some repairs where possible.
 #' @param s data frame, input data for a single soil profile.
-#' @param var_name target variable
+#' @param var_name length-1 character or length-1 integer denoting the column in
+#'   \code{site} in which target data is stored. If not supplied, the fourth
+#'   column of the input object is assumed to contain the target data.
 #' @return If data passes checks it is returned unchanged. Sites with no data to
 #'   spline and sites with overlapping input depth ranges return NA.
 #' @keywords internal
@@ -118,10 +121,12 @@ mpspline_datchk <- function(s = NULL, var_name = NULL) {
 
 #' Estimate spline parameters
 #'
-#' estimate key parameters for building a mass-preserving spline across a single
-#' profile
+#' Estimate key parameters for building a mass-preserving spline across a single
+#' soil profile
 #' @param s data.frame containing a single profile's worth of soil info
-#' @param var_name target variable.
+#' @param var_name length-1 character or length-1 integer denoting the column in
+#'   \code{site} in which target data is stored. If not supplied, the fourth
+#'   column of the input object is assumed to contain the target data.
 #' @param lam number; smoothing parameter for spline. Defaults to 0.1.
 #' @return A list of parameters used for spline fitting.
 #' @keywords internal
@@ -195,8 +200,9 @@ mpspline_est1 <- function(s = NULL, var_name = NULL, lam = NULL) {
 #' Fit spline parameters
 #'
 #' Fit spline parameters to data for a single site.
-#' @param s data for one site
-#' @param p estimated spline parameters for one site
+#' @param s data.frame; data for one site
+#' @param p list; estimated spline parameters for one site from
+#'   \code{\link[mpspline2:mpspline_est1]{mpspline_est1}}
 #' @inheritParams mpspline
 #' @return list of two vectors: fitted values at 1cm intervals and the average
 #'   of same over the requested depth ranges.
@@ -294,13 +300,16 @@ mpspline_fit1 <- function(s = NULL, p = NULL, var_name = NULL,
 #' calculate RMSE
 #'
 #' Calculates Root Mean Squared Error (RMSE) for estimates on a single site
-#' @param s site data frame
-#' @param p estimated spline params for site
-#' @param var_name target variable
+#' @param s data.frame; data for one site
+#' @param p list; estimated spline parameters for one site from
+#'   \code{\link[mpspline2:mpspline_est1]{mpspline_est1}}
+#' @param var_name length-1 character or length-1 integer denoting the column in
+#'   \code{site} in which target data is stored. If not supplied, the fourth
+#'   column of the input object is assumed to contain the target data.
 #' @return length-2 named numeric - RMSE and RMSE scaled against input data's
 #'   interquartile range.
 #' @keywords internal
-#' @note Useful for comparing the results of varying parameter `lam`.
+#' @note Useful for comparing the results of varying parameter \code{lam}.
 #' @importFrom stats IQR
 #'
 mpspline_rmse1 <- function(s = NULL, p = NULL, var_name = NULL) {
@@ -324,11 +333,11 @@ mpspline_rmse1 <- function(s = NULL, p = NULL, var_name = NULL) {
 #'   and lower sample depths, respectively, measured in centimeters. Subsequent
 #'   columns will contain measured values for those depths.
 #' @param var_name length-1 character or length-1 integer denoting the column in
-#'   `site` in which target data is stored. If not supplied, the fourth column of
-#'   the input object is assumed to contain the target data.
+#'   \code{site} in which target data is stored. If not supplied, the fourth
+#'   column of the input object is assumed to contain the target data.
 #' @param lam number; smoothing parameter for spline. Defaults to 0.1.
 #' @param d sequential integer vector; denotes the output depth ranges in cm.
-#'   Defaults to `c(0, 5, 15, 30, 60, 100, 200)` after the globalsoilmap.net
+#'   Defaults to \code{c(0, 5, 15, 30, 60, 100, 200)} after the GlobalSoilMap
 #'   specification, giving output predictions over intervals 0-5cm, 5-15cm,
 #'   etc.
 #' @param vlow numeric; constrains the minimum predicted value to a realistic
@@ -337,8 +346,8 @@ mpspline_rmse1 <- function(s = NULL, p = NULL, var_name = NULL) {
 #'   number. Defaults to 1000.
 #' @return A list with the following elements: Site ID, vector of predicted
 #'   values over input intervals, vector of predicted values for each cm down
-#'   the profile to max(d), vector of predicted values over `d` (output)
-#'   intervals, and root mean squared error.
+#'   the profile to \code{max(d)}, vector of predicted values over \code{d}
+#'   (output) intervals, and root mean squared error.
 #' @examples
 #' dat <- data.frame("SID" = c( 1,  1,  1,  1),
 #'                    "UD" = c( 0, 20, 40, 60),
@@ -407,25 +416,25 @@ mpspline_one <- function(site = NULL, var_name = NULL, lam = 0.1,
 #'   frame or matrix. For data frames and matrices, column 1 must contain site
 #'   identifiers. Columns 2 and 3 must contain upper and lower sample depths,
 #'   respectively. Subsequent columns will contain measured values for those
-#'   depths. For SoilProfileCollections, the `@horizons` slot must be similarly
-#'   arranged, and the `@idcol` and `@depthcol` slots must be correctly defined.
+#'   depths. For SoilProfileCollections, the \code{@horizons} slot must be
+#'   similarly arranged, and the \code{@idcol} and \code{@depthcol} slots must
+#'   be correctly defined.
 #' @param var_name length-1 character or length-1 integer denoting the column in
-#'   `obj` in which target data is stored. If not supplied, the fourth column of
-#'   the input object is assumed to contain the target data.
+#'   \code{obj} in which target data is stored. If not supplied, the fourth
+#'   column of the input object is assumed to contain the target data.
 #' @param lam number; smoothing parameter for spline. Defaults to 0.1.
 #' @param d sequential integer vector; denotes the output depth ranges in cm.
-#'   Defaults to `c(0, 5, 15, 30, 60, 100, 200)` after the globalsoilmap.net
+#'   Defaults to \code{c(0, 5, 15, 30, 60, 100, 200)} after the GlobalSoilMap
 #'   specification, giving output predictions over intervals 0-5cm, 5-15cm,
 #'   etc.
 #' @param vlow numeric; constrains the minimum predicted value to a realistic
 #'   number. Defaults to 0.
 #' @param vhigh numeric; constrains the maximum predicted value to a realistic
 #'   number. Defaults to 1000.
-#' @return A nested list of data for each input
-#'   site. List elements are: Site ID, vector of predicted values over input
-#'   intervals, vector of predicted values for each cm down the profile to
-#'   max(d), vector of predicted values over `d` (output) intervals, and root
-#'   mean squared error.
+#' @return A nested list of data for each input site. List elements are: Site
+#'   ID, vector of predicted values over input intervals, vector of predicted
+#'   values for each cm down the profile to \code{max(d)}, vector of predicted
+#'   values over \code{d} (output) intervals, and root mean squared error.
 #' @examples
 #' dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
 #'                    "UD" = c( 0, 20, 40, 60,   0,  15,  45,  80),

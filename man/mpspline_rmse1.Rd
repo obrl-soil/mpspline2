@@ -7,11 +7,14 @@
 mpspline_rmse1(s = NULL, p = NULL, var_name = NULL)
 }
 \arguments{
-\item{s}{site data frame}
+\item{s}{data.frame; data for one site}
 
-\item{p}{estimated spline params for site}
+\item{p}{list; estimated spline parameters for one site from
+\code{\link[mpspline2:mpspline_est1]{mpspline_est1}}}
 
-\item{var_name}{target variable}
+\item{var_name}{length-1 character or length-1 integer denoting the column in
+\code{site} in which target data is stored. If not supplied, the fourth
+column of the input object is assumed to contain the target data.}
 }
 \value{
 length-2 named numeric - RMSE and RMSE scaled against input data's
@@ -21,6 +24,6 @@ length-2 named numeric - RMSE and RMSE scaled against input data's
 Calculates Root Mean Squared Error (RMSE) for estimates on a single site
 }
 \note{
-Useful for comparing the results of varying parameter `lam`.
+Useful for comparing the results of varying parameter \code{lam}.
 }
 \keyword{internal}
