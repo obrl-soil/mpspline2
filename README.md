@@ -1,37 +1,53 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-[![Travis build status](https://travis-ci.com/obrl-soil/mpspline2.svg?branch=master)](https://travis-ci.com/obrl-soil/mpspline2) [![Coverage status](https://codecov.io/gh/obrl-soil/mpspline2/branch/master/graph/badge.svg)](https://codecov.io/github/obrl-soil/mpspline2?branch=master)
 
-mpspline2
-=========
+[![Travis build
+status](https://travis-ci.com/obrl-soil/mpspline2.svg?branch=master)](https://travis-ci.com/obrl-soil/mpspline2)
+[![Coverage
+status](https://codecov.io/gh/obrl-soil/mpspline2/branch/master/graph/badge.svg)](https://codecov.io/github/obrl-soil/mpspline2?branch=master)
 
-This package is a space to re-work [`GSIF::mpspline()`](https://r-forge.r-project.org/scm/viewvc.php/pkg/R/mpspline.R?view=markup&revision=240&root=gsif), because the doco says it needs tidying up.
+# mpspline2
 
-This is only set up as a package so I could use `testthat` and `roxygen2` easily. Also I don't understand SCM repositories, and don't really want to &gt;.&gt;
+This package is standalone re-implementation of
+[`GSIF::mpspline()`](https://r-forge.r-project.org/scm/viewvc.php/pkg/R/mpspline.R?view=markup&revision=240&root=gsif),
+which applies a mass-preserving spline to soil attributes. Splining soil
+data is a safe way to make continuous down-profile estimates of
+attributes measured over discrete, often discontinuous depth intervals.
 
-Installation
-------------
+## Installation
 
-Don't! Or use `devtools::install_github('obrl-soil/mpspline2')`, I'm not the boss of you.
+`devtools::install_github('obrl-soil/mpspline2')`
 
-Outcome
--------
+## Example
 
-Better:
+``` r
+library(mpspline2)
+dat <- data.frame("SID" = c( 1,  1,  1,  1),
+                   "UD" = c( 0, 20, 40, 60),
+                   "LD" = c(10, 30, 50, 70),
+                  "VAL" = c( 6,  4,  3, 10),
+                   stringsAsFactors = FALSE)
+dat
+#>   SID UD LD VAL
+#> 1   1  0 10   6
+#> 2   1 20 30   4
+#> 3   1 40 50   3
+#> 4   1 60 70  10
+mpspline_tidy(obj = dat, var_name = 'VAL')$est_dcm
+#>     SID UD  LD SPLINED_VALUE
+#> 1.1   1  0   5      6.105160
+#> 1.2   1  5  15      5.618341
+#> 1.3   1 15  30      4.316876
+#> 1.4   1 30  60      4.192058
+#> 1.5   1 60 100      9.732400
+```
 
--   Full unit testing coverage, for great confidence
--   Clearer documentation and commentary (or at least, more of it :P)
--   Handles multiple input formats - don't need to use SoilProfileCollection
--   TMSE in output object
+### Asking for help
 
-Worse:
+If you get stuck using this package or the data it provides, please post
+a question on [Stack Overflow](https://stackoverflow.com/). This means
+that others can benefit from the discussion, and more people are
+available to help you. You’re welcome to ping me in a comment or on
+twitter (@obrl\_soil) to get my attention.
 
--   Not as fast :(
-
-???:
-
--   Refuses to predict 1cm values outside input data range (on purpose).
--   Refuses to deal with sites that have overlapping horizons (on purpose).
--   Default return object is different. 'Classic' option is available.
-
-------------------------------------------------------------------------
+-----

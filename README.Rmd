@@ -18,31 +18,28 @@ knitr::opts_chunk$set(
 
 # mpspline2
 
-This package is a space to re-work [`GSIF::mpspline()`](https://r-forge.r-project.org/scm/viewvc.php/pkg/R/mpspline.R?view=markup&revision=240&root=gsif), because the doco says it needs tidying up.
-
-This is only set up as a package so I could use `testthat` and `roxygen2` easily. Also I don't understand SCM repositories, and don't really want to >.>
+This package is standalone re-implementation of  [`GSIF::mpspline()`](https://r-forge.r-project.org/scm/viewvc.php/pkg/R/mpspline.R?view=markup&revision=240&root=gsif), which applies a mass-preserving spline to soil attributes. Splining soil data is a safe way to make continuous down-profile estimates of attributes measured over discrete, often discontinuous depth intervals.
 
 ## Installation
 
-Don't! Or use `devtools::install_github('obrl-soil/mpspline2')`, I'm not the boss of you.
+`devtools::install_github('obrl-soil/mpspline2')`
 
-## Outcome
+## Example
 
-Better:
+```{r}
+library(mpspline2)
+dat <- data.frame("SID" = c( 1,  1,  1,  1),
+                   "UD" = c( 0, 20, 40, 60),
+                   "LD" = c(10, 30, 50, 70),
+                  "VAL" = c( 6,  4,  3, 10),
+                   stringsAsFactors = FALSE)
+dat
+mpspline_tidy(obj = dat, var_name = 'VAL')$est_dcm
 
-  * Full unit testing coverage, for great confidence
-  * Clearer documentation and commentary (or at least, more of it :P)
-  * Handles multiple input formats - don't need to use SoilProfileCollection
-  * TMSE in output object
+```
 
-Worse:
+### Asking for help
 
-  * Not as fast :( 
-  
-???:
+If you get stuck using this package or the data it provides, please post a question on [Stack Overflow](https://stackoverflow.com/). This means that others can benefit from the discussion, and more people are available to help you. You're welcome to ping me in a comment or on twitter (@obrl_soil) to get my attention.
 
-  * Refuses to predict 1cm values outside input data range (on purpose).
-  * Refuses to deal with sites that have overlapping horizons (on purpose).
-  * Default return object is different. 'Classic' option is available.
-  
 ***
