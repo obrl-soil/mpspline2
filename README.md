@@ -8,7 +8,7 @@ status](https://codecov.io/gh/obrl-soil/mpspline2/branch/master/graph/badge.svg)
 
 # mpspline2
 
-This package is standalone re-implementation of
+This package is a standalone re-implementation of
 [`GSIF::mpspline()`](https://r-forge.r-project.org/scm/viewvc.php/pkg/R/mpspline.R?view=markup&revision=240&root=gsif),
 which applies a mass-preserving spline to soil attributes. Splining soil
 data is a safe way to make continuous down-profile estimates of
@@ -44,10 +44,10 @@ mpspline_tidy(obj = dat, var_name = 'VAL')$est_dcm
 
 ### Asking for help
 
-If you get stuck using this package or the data it provides, please post
-a question on [Stack Overflow](https://stackoverflow.com/). This means
-that others can benefit from the discussion, and more people are
-available to help you. You’re welcome to ping me in a comment or on
-twitter (@obrl\_soil) to get my attention.
+If you get stuck using this package, please post a question on [Stack
+Overflow](https://stackoverflow.com/). This means that others can
+benefit from the discussion, and more people are available to help you.
+You’re welcome to ping me in a comment or on twitter (@obrl\_soil) to
+get my attention.
 
 -----
