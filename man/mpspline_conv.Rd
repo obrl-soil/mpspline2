@@ -4,7 +4,6 @@
 \alias{mpspline_conv}
 \alias{mpspline_conv.matrix}
 \alias{mpspline_conv.data.frame}
-\alias{mpspline_conv.SoilProfileCollection}
 \title{Convert data for splining}
 \usage{
 mpspline_conv(obj = NULL)
@@ -12,17 +11,11 @@ mpspline_conv(obj = NULL)
 \method{mpspline_conv}{matrix}(obj = NULL)
 
 \method{mpspline_conv}{data.frame}(obj = NULL)
-
-\method{mpspline_conv}{SoilProfileCollection}(obj = NULL)
 }
 \arguments{
-\item{obj}{Object of class SoilProfileCollection (aqp) or data frame or
-matrix. For data frames and matrices, column 1 must contain site
-identifiers. Columns 2 and 3 must contain upper and lower sample depths,
-respectively. Subsequent columns will contain measured values for those
-depths. For SoilProfileCollections, the \code{@horizons} slot must be
-similarly arranged, and the \code{@idcol} and \code{@depthcol} slots must
-be correctly defined.}
+\item{obj}{data.frame or matrix. Column 1 must contain site identifiers.
+Columns 2 and 3 must contain upper and lower sample depths, respectively.
+Subsequent columns will contain measured values for those depths.}
 }
 \value{
 data frame, sorted by site ID, upper and lower depth.

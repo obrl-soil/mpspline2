@@ -33,20 +33,6 @@ test_that("mpspline_conv works for data frames",
           )
         )
 
-test_that("mpspline_conv works for SoilProfileCollections",
-          c(library(aqp),
-            obj <-  data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
-                               "UD"  = c(NA, 20, 40, 60,  -1,  45,  15,  80),
-                               "LD"  = c(10, 30, 50, 70,   5,  60,  30,  NA),
-                               "VAL" = c( 6,  4,  3, 10, 0.1, 0.9, 2.5,   6),
-                               stringsAsFactors = FALSE),
-            depths(obj) <- SID ~ UD + LD,
-            fixed <- mpspline_conv(obj),
-            expect_is(fixed, 'data.frame'),
-            expect_equal(nrow(fixed), 8)
-          )
-        )
-
 test_that("mpspline_datchk does what it oughta",
           c(
             obj <-  data.frame("SID" = 1,
@@ -300,7 +286,7 @@ test_that("mpspline works with default output",
              expect_length(m1[[1]][[3]], 200),
              expect_length(m1[[1]][[4]], 6),
              expect_length(m1[[1]][[5]], 2),
-             expect_equal(m1[[3]][[2]], 3.5),
+             expect_equivalent(m1[[3]][[2]], 3.5),
              # var name skipped
              expect_message(mpspline(s1, d = c(0, 5, 15, 30, 60, 100, 200),
                                      vhigh = 14, vlow = 0)),

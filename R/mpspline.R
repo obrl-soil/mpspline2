@@ -1,13 +1,9 @@
 #' Convert data for splining
 #'
 #' Generate a consistent input object for splining
-#' @param obj Object of class SoilProfileCollection (aqp) or data frame or
-#'   matrix. For data frames and matrices, column 1 must contain site
-#'   identifiers. Columns 2 and 3 must contain upper and lower sample depths,
-#'   respectively. Subsequent columns will contain measured values for those
-#'   depths. For SoilProfileCollections, the \code{@horizons} slot must be
-#'   similarly arranged, and the \code{@idcol} and \code{@depthcol} slots must
-#'   be correctly defined.
+#' @param obj data.frame or matrix. Column 1 must contain site identifiers.
+#'   Columns 2 and 3 must contain upper and lower sample depths, respectively.
+#'   Subsequent columns will contain measured values for those depths.
 #' @return data frame, sorted by site ID, upper and lower depth.
 #' @keywords internal
 #' @rdname mpspline_conv
@@ -37,33 +33,6 @@ mpspline_conv.matrix <- function(obj = NULL) {
 #'
 mpspline_conv.data.frame <- function(obj = NULL) {
   obj # >.>
-}
-
-#' @rdname mpspline_conv
-#' @inherit mpspline_conv return
-#' @method mpspline_conv SoilProfileCollection
-#' @importFrom aqp horizonDepths horizons idname
-#'
-mpspline_conv.SoilProfileCollection <- function(obj = NULL) {
-  # profile ID field name, set at SPC init time
-  ic <- idname(obj)
-
-  # horizon depth field names, set at SPC init time
-  dc <- horizonDepths(obj)
-
-  # horizon level attributes, includes IDs and depths
-  h <- horizons(obj)
-
-  # horizon level field names, minus IDs and depths
-  ac <- names(h)[-which(names(h) %in% c(ic, dc))]
-
-  # re-order cols to expected format: ID, top, bottom, {everything else}
-  h[, c(ic, dc, ac)]
-
-  # nb site data are lost
-  # spatial data are lost
-  # diagnostic features are lost
-  # done, stringsAsFactors logic mirrors source data
 }
 
 #' pre-spline data checks
@@ -325,9 +294,10 @@ mpspline_rmse1 <- function(s = NULL, p = NULL, var_name = NULL) {
 
 #' Spline discrete soils data - single site
 #'
-#' This function implements the mass-preserving spline method of (Bishop et al
-#' (1999))[http://dx.doi.org/10.1016/S0016-7061(99)00003-8] for interpolating
-#' between measured soil attributes down a single soil profile.
+#' This function implements the mass-preserving spline method of
+#' \href{http://dx.doi.org/10.1016/S0016-7061(99)00003-8}{Bishop et al (1999)}
+#' for interpolating between measured soil attributes down a single soil
+#' profile.
 #' @param site data frame containing data for a single soil profile.
 #'   Column 1 must contain site identifiers. Columns 2 and 3 must contain upper
 #'   and lower sample depths, respectively, measured in centimeters. Subsequent
@@ -388,11 +358,16 @@ mpspline_one <- function(site = NULL, var_name = NULL, lam = 0.1,
     s[[1]] <- as.character(s[[1]])
   }
 
+  if(all(is.na(p))) { icm <- s[[var_name]][1]
+    names(icm) <- paste0(sprintf('%03d', s[[2]][1]), '_',
+                         sprintf('%03d', s[[3]][1]), '_cm')
+    }
+
   # arrange outputs
   splined <-
     list("ID" = s[[1]][1],
          # below matches splinetool.exe - should this return alfa tho??
-         "est_icm" = if(all(is.na(p))) { s[[var_name]][1] } else { p[['s_bar']] },
+         "est_icm" = if(all(is.na(p))) { icm } else { p[['s_bar']] },
          "est_1cm" = e[[1]],
          "est_dcm" = e[[2]],
          "est_err" = t
@@ -408,17 +383,14 @@ mpspline_one <- function(site = NULL, var_name = NULL, lam = 0.1,
 
 #' Spline discrete soils data - multiple sites
 #'
-#' This function implements the mass-preserving spline method of (Bishop et al
-#' (1999))[http://dx.doi.org/10.1016/S0016-7061(99)00003-8] for interpolating
-#' between measured soil attributes down a soil profile, across multiple sites'
-#' worth of data.
-#' @param obj Object of class SoilProfileCollection (see package 'aqp') or data
-#'   frame or matrix. For data frames and matrices, column 1 must contain site
+#' This function implements the mass-preserving spline method of
+#' \href{http://dx.doi.org/10.1016/S0016-7061(99)00003-8}{Bishop et al
+#' (1999)} for interpolating between measured soil attributes down a soil
+#' profile, across multiple sites' worth of data.
+#' @param obj data.frame or matrix. Column 1 must contain site
 #'   identifiers. Columns 2 and 3 must contain upper and lower sample depths,
 #'   respectively. Subsequent columns will contain measured values for those
-#'   depths. For SoilProfileCollections, the \code{@horizons} slot must be
-#'   similarly arranged, and the \code{@idcol} and \code{@depthcol} slots must
-#'   be correctly defined.
+#'   depths.
 #' @param var_name length-1 character or length-1 integer denoting the column in
 #'   \code{obj} in which target data is stored. If not supplied, the fourth
 #'   column of the input object is assumed to contain the target data.
@@ -463,3 +435,4 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
 
   splined[which(!is.na(splined))]
 }
+

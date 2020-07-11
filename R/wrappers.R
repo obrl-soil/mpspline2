@@ -1,19 +1,16 @@
 #' Spline discrete soils data - multiple sites, compact output
 #'
-#' This function implements the mass-preserving spline method of (Bishop et al
-#' (1999))[http://dx.doi.org/10.1016/S0016-7061(99)00003-8] for interpolating
-#' between measured soil attributes down a soil profile, across multiple sites'
-#' worth of data. It returns a compact output object similar to
-#'  \code{\link[GSIF:mpspline]{GSIF::mpspline()}}
-#' @param obj Object of class SoilProfileCollection (see package 'aqp') or data
-#'   frame or matrix. For data frames and matrices, column 1 must contain site
-#'   identifiers. Columns 2 and 3 must contain upper and lower sample depths,
-#'   respectively. Subsequent columns will contain measured values for those
-#'   depths. For SoilProfileCollections, the \code{@horizons} slot must be similarly
-#'   arranged, and the \code{@idcol} and \code{@depthcol} slots must be correctly defined.
+#' This function implements the mass-preserving spline method of
+#' \href{http://dx.doi.org/10.1016/S0016-7061(99)00003-8}{Bishop et al
+#' (1999)} for interpolating between measured soil attributes down a soil
+#' profile, across multiple sites' worth of data. It returns a compact output
+#' object similar to \code{\link[GSIF:mpspline]{GSIF::mpspline()}}
+#' @param obj data.frame or matrix. Column 1 must contain site identifiers.
+#'   Columns 2 and 3 must contain upper and lower sample depths, respectively.
+#'   Subsequent columns will contain measured values for those depths.
 #' @param var_name length-1 character or length-1 integer denoting the column in
-#'   \code{obj} in which target data is stored. If not supplied, the fourth column of
-#'   the input object is assumed to contain the target data.
+#'   \code{obj} in which target data is stored. If not supplied, the fourth
+#'   column of the input object is assumed to contain the target data.
 #' @param lam number; smoothing parameter for spline. Defaults to 0.1.
 #' @param d sequential integer vector; denotes the output depth ranges in cm.
 #'   Defaults to \code{c(0, 5, 15, 30, 60, 100, 200)} after the GlobalSoilMap
@@ -23,11 +20,10 @@
 #'   number. Defaults to 0.
 #' @param vhigh numeric; constrains the maximum predicted value to a realistic
 #'   number. Defaults to 1000.
-#' @return A four-item list containing a matrix of
-#'   predicted values over the input depth ranges, a matrix of predicted
-#'   values over the output depth ranges, a matrix of 1cm predictions, and a
-#'   matrix of RMSE and IQR-scaled RMSE values. Site identifiers are in rownames
-#'   attributes.
+#' @return A four-item list containing a matrix of predicted values over the
+#'   input depth ranges, a matrix of predicted values over the output depth
+#'   ranges, a matrix of 1cm predictions, and a matrix of RMSE and IQR-scaled
+#'   RMSE values. Site identifiers are in rownames attributes.
 #' @examples
 #' dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
 #'                    "UD" = c( 0, 20, 40, 60,   0,  15,  45,  80),
@@ -77,22 +73,20 @@ mpspline_compact <- function(obj = NULL, var_name = NULL, lam = 0.1,
 
 }
 
-#' Spline discrete soils data - multiple sites, SoilProfileCollection output
+#' Spline discrete soils data - multiple sites, tidy output
 #'
-#' This function implements the mass-preserving spline method of (Bishop et al
-#' (1999))[http://dx.doi.org/10.1016/S0016-7061(99)00003-8] for interpolating
-#' between measured soil attributes down a soil profile, across multiple sites'
-#' worth of data. It returns a SoilProfileCollection object containing all
-#' outputs.
-#' @param obj Object of class SoilProfileCollection (see package 'aqp') or data
-#'   frame or matrix. For data frames and matrices, column 1 must contain site
-#'   identifiers. Columns 2 and 3 must contain upper and lower sample depths,
-#'   respectively. Subsequent columns will contain measured values for those
-#'   depths. For SoilProfileCollections, the \code{@horizons} slot must be similarly
-#'   arranged, and the \code{@idcol} and \code{@depthcol} slots must be correctly defined.
+#' This function implements the mass-preserving spline method of
+#' \href{http://dx.doi.org/10.1016/S0016-7061(99)00003-8}{Bishop et al
+#' (1999)} for interpolating between measured soil attributes down a soil
+#' profile, across multiple sites' worth of data. It returns an output object
+#' with tidy data formatting.
+#' @param obj data.frame or matrix. Column 1 must contain site identifiers.
+#'   Columns 2 and 3 must contain upper and lower sample depths, respectively,
+#'   and be measured in centimeters. Subsequent columns will contain measured
+#'   values for those depths.
 #' @param var_name length-1 character or length-1 integer denoting the column in
-#'   \code{obj} in which target data is stored. If not supplied, the fourth column of
-#'   the input object is assumed to contain the target data.
+#'   \code{obj} in which target data is stored. If not supplied, the fourth
+#'   column of the input object is assumed to contain the target data.
 #' @param lam number; smoothing parameter for spline. Defaults to 0.1.
 #' @param d sequential integer vector; denotes the output depth ranges in cm.
 #'   Defaults to \code{c(0, 5, 15, 30, 60, 100, 200)} after the GlobalSoilMap
@@ -102,23 +96,21 @@ mpspline_compact <- function(obj = NULL, var_name = NULL, lam = 0.1,
 #'   number. Defaults to 0.
 #' @param vhigh numeric; constrains the maximum predicted value to a realistic
 #'   number. Defaults to 1000.
-#' @return A SoilProfileCollection object containing spline predictions over
-#' the input depth ranges, the output depth ranges, and at 1cm intervals, along
-#' with root mean squared error (RMSE) and IQR-scaled RMSE.
+#' @return A four-item list containing data frames of predicted values over the
+#'   input depth ranges, the output depth ranges, 1cm-increment predictions, and
+#'   RMSE and IQR-scaled RMSE values.
 #' @examples
 #' dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
 #'                    "UD" = c( 0, 20, 40, 60,   0,  15,  45,  80),
 #'                    "LD" = c(10, 30, 50, 70,   5,  30,  60, 100),
 #'                   "VAL" = c( 6,  4,  3, 10, 0.1, 0.9, 2.5,   6),
 #'                    stringsAsFactors = FALSE)
-#' mpspline_spc(obj = dat, var_name = 'VAL')
-#' @importFrom aqp depths<- horizons<- site
-#' @importFrom stats as.formula sd
+#' mpspline_tidy(obj = dat, var_name = 'VAL')
 #' @export
 #'
-mpspline_spc <- function(obj = NULL, var_name = NULL, lam = 0.1,
-                         d = c(0, 5, 15, 30, 60, 100, 200),
-                         vlow = 0, vhigh = 1000) {
+mpspline_tidy <- function(obj = NULL, var_name = NULL, lam = 0.1,
+                          d = c(0, 5, 15, 30, 60, 100, 200),
+                          vlow = 0, vhigh = 1000) {
 
   obj <- mpspline_conv(obj)
 
@@ -134,51 +126,49 @@ mpspline_spc <- function(obj = NULL, var_name = NULL, lam = 0.1,
   keep <- which(!is.na(splined))
   splined <- splined[keep]
 
-  # hating myself a little here b/c redundant but I need the input
-  # horizons post-cleaning
-  orig <- suppressMessages(
-    lapply(sites, mpspline_datchk, var_name = var_name)
+  icm <- lapply(splined, function(i) {
+    data.frame("SID" = i$SID,
+               "DEPTH" = names(i$est_icm),
+               "SPLINED_VALUE" = as.vector(i$est_icm))
+  })
+  icm <- do.call('rbind', icm)
+  icm$UD <- as.numeric(substr(icm$DEPTH, 1, 3))
+  icm$LD <- as.numeric(substr(icm$DEPTH, 5, 7))
+  icm <- icm[, c('SID', 'UD', 'LD', 'SPLINED_VALUE')]
+
+  ncm <- lapply(splined, function(i) {
+    data.frame("SID" = i$SID,
+               "UD" = seq(200),
+               "LD" = seq(200) + 1,
+               "SPLINED_VALUE" = as.vector(i$est_1cm))
+  })
+  ncm <- do.call('rbind', ncm)
+  ncm <- ncm[!is.na(ncm$SPLINED_VALUE), ]
+
+  dcm <- lapply(splined, function(i) {
+    data.frame("SID" = i$SID,
+               "DEPTH" = names(i$est_dcm),
+               "SPLINED_VALUE" = as.vector(i$est_dcm))
+  })
+  dcm <- do.call('rbind', dcm)
+  dcm$UD <- as.numeric(substr(dcm$DEPTH, 1, 3))
+  dcm$LD <- as.numeric(substr(dcm$DEPTH, 5, 7))
+  dcm <- dcm[, c('SID', 'UD', 'LD', 'SPLINED_VALUE')]
+  dcm <- dcm[!is.na(dcm$SPLINED_VALUE), ]
+
+  tmse <- lapply(splined, function(i) {
+    data.frame("SID" = i$SID,
+               "ERROR_TYPE" = names(i$est_err),
+               "ERROR_VALUE" = as.vector(i$est_err))
+  })
+  tmse <- do.call('rbind', tmse)
+
+  list(
+    'est_icm' = icm,
+    'est_1cm' = ncm,
+    'est_dcm' = dcm,
+    'tmse'    = tmse
   )
-  orig <- orig[keep]
 
-  sidnm <- names(obj)[1]
-  all_df <- mapply(function(orig, spln) {
-    df_1cm <- data.frame(spln[[1]], '1cm',
-                         seq(spln[[3]]) - 1, seq(spln[[3]]),
-                         spln[[3]], spln[[5]][[1]], spln[[5]][[2]])
-    names(df_1cm) <- c(sidnm, 'est', 'UD_cm', 'LD_cm', var_name,
-                       'RMSE', 'RMSE_IQR')
-    df_1cm <- df_1cm[!is.na(df_1cm[[var_name]]), ]
-
-    df_dcm <- data.frame(spln[[1]], 'dcm',
-                         d[1:(length(d) - 1)], d[2:length(d)],
-                         spln[[4]], spln[[5]][[1]], spln[[5]][[2]],
-                         row.names = NULL)
-    names(df_dcm) <- names(df_1cm)
-    df_dcm <- df_dcm[!is.na(df_dcm[[var_name]]), ]
-
-    df_icm <-  data.frame(spln[[1]], 'icm',
-                          orig[[2]], orig[[3]], # see whining above
-                          spln[[2]], spln[[5]][[1]], spln[[5]][[2]],
-                          row.names = NULL)
-    names(df_icm) <- names(df_dcm)
-    rbind(df_icm, df_dcm, df_1cm)
-  },
-  orig = orig, spln = splined, SIMPLIFY = FALSE)
-  all_df <- do.call('rbind', all_df)
-  rownames(all_df) <- seq(dim(all_df)[1])
-  all_df <- cbind(paste0(all_df[[1]], '_', all_df[[2]]),
-                  all_df)
-  names(all_df)[1] <- paste0(sidnm, "_est")
-  nm <- names(all_df)
-  fm <- as.formula(sprintf("%s ~ %s + %s", nm[1], nm[4], nm[5]))
-  suppressWarnings(depths(all_df) <- fm)
-  nso <- horizons(all_df)[, seq(3)]
-  nso <- base::unique(nso)
-  nso$est <- base::ordered(nso$est,
-                           levels = c('icm', '1cm', 'dcm')) # overkill? nahhhh
-  rownames(nso) <- NULL
-  all_df@site <- nso
-
-  all_df
 }
+

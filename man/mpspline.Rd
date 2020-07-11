@@ -14,13 +14,10 @@ mpspline(
 )
 }
 \arguments{
-\item{obj}{Object of class SoilProfileCollection (see package 'aqp') or data
-frame or matrix. For data frames and matrices, column 1 must contain site
+\item{obj}{data.frame or matrix. Column 1 must contain site
 identifiers. Columns 2 and 3 must contain upper and lower sample depths,
 respectively. Subsequent columns will contain measured values for those
-depths. For SoilProfileCollections, the \code{@horizons} slot must be
-similarly arranged, and the \code{@idcol} and \code{@depthcol} slots must
-be correctly defined.}
+depths.}
 
 \item{var_name}{length-1 character or length-1 integer denoting the column in
 \code{obj} in which target data is stored. If not supplied, the fourth
@@ -46,10 +43,10 @@ A nested list of data for each input site. List elements are: Site
   values over \code{d} (output) intervals, and root mean squared error.
 }
 \description{
-This function implements the mass-preserving spline method of (Bishop et al
-(1999))[http://dx.doi.org/10.1016/S0016-7061(99)00003-8] for interpolating
-between measured soil attributes down a soil profile, across multiple sites'
-worth of data.
+This function implements the mass-preserving spline method of
+\href{http://dx.doi.org/10.1016/S0016-7061(99)00003-8}{Bishop et al
+(1999)} for interpolating between measured soil attributes down a soil
+profile, across multiple sites' worth of data.
 }
 \examples{
 dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),

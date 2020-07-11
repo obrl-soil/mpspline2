@@ -1,20 +1,19 @@
 Package: mpspline2
 Type: Package
-Title: Mass-preserving splines for soil data
+Title: Mass-preserving spline functions for soil data
 Version: 0.1.3
-Date: 2020-07-08
+Date: 2020-07-11
 Authors@R: c(person("Lauren", "O'Brien", email = "obrlsoilau@gmail.com", role = c('aut', 'cre'), comment = c(ORCID = "0000-0002-7336-2171")),
              person("Brendan", "Malone",  email = "brendan.malone@csiro.au",  role = c('ctb'), comment = c(ORCID = "0000-0002-0473-8518")),
 			 person("Tomislav", "Hengl",  email = "tom.hengl@wur.nl",  role = c('ctb'), comment = c(ORCID = "0000-0002-9921-5129")),
 			 person("Tom", "Bishop",  email = "t.bishop@usyd.edu.au",  role = c('ctb')),
 			 person("David", "Rossiter",  email = "david.rossiter@wur.nl",  role = c('ctb')),
 			 person("Dylan", "Beaudette",  email = "dylan.beaudette@ca.usda.gov",  role = c('ctb')))
-Description: An updated version of GSIF::mpspline(). 
+Description: A low-dependency implementation of GSIF::mpspline(). 
 License: GPL
 Encoding: UTF-8
 LazyData: true
 Imports:
-    aqp,
     stats
 Suggests:
     testthat,
