@@ -3,8 +3,8 @@
 #' This function implements the mass-preserving spline method of
 #' \href{http://dx.doi.org/10.1016/S0016-7061(99)00003-8}{Bishop et al
 #' (1999)} for interpolating between measured soil attributes down a soil
-#' profile, across multiple sites' worth of data. It returns a compact output
-#' object similar to \code{\link[GSIF:mpspline]{GSIF::mpspline()}}
+#' profile, across multiple sites' worth of data. It returns a more compact output
+#' object than \code{\link[mpspline2:mpspline]{mpspline()}}.
 #' @param obj data.frame or matrix. Column 1 must contain site identifiers.
 #'   Columns 2 and 3 must contain upper and lower sample depths, respectively.
 #'   Subsequent columns will contain measured values for those depths.

@@ -45,8 +45,8 @@ A four-item list containing a matrix of predicted values over the
 This function implements the mass-preserving spline method of
 \href{http://dx.doi.org/10.1016/S0016-7061(99)00003-8}{Bishop et al
 (1999)} for interpolating between measured soil attributes down a soil
-profile, across multiple sites' worth of data. It returns a compact output
-object similar to \code{\link[GSIF:mpspline]{GSIF::mpspline()}}
+profile, across multiple sites' worth of data. It returns a more compact output
+object than \code{\link[mpspline2:mpspline]{mpspline()}}.
 }
 \examples{
 dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
