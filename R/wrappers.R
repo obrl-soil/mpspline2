@@ -129,7 +129,8 @@ mpspline_tidy <- function(obj = NULL, var_name = NULL, lam = 0.1,
   icm <- lapply(splined, function(i) {
     data.frame("SID" = i$SID,
                "DEPTH" = names(i$est_icm),
-               "SPLINED_VALUE" = as.vector(i$est_icm))
+               "SPLINED_VALUE" = as.vector(i$est_icm),
+               stringsAsFactors = FALSE)
   })
   icm <- do.call('rbind', icm)
   icm$UD <- as.numeric(substr(icm$DEPTH, 1, 3))
@@ -138,9 +139,10 @@ mpspline_tidy <- function(obj = NULL, var_name = NULL, lam = 0.1,
 
   ncm <- lapply(splined, function(i) {
     data.frame("SID" = i$SID,
-               "UD" = seq(200),
+               "UD" = as.numeric(seq(200)),
                "LD" = seq(200) + 1,
-               "SPLINED_VALUE" = as.vector(i$est_1cm))
+               "SPLINED_VALUE" = as.vector(i$est_1cm),
+               stringsAsFactors = FALSE)
   })
   ncm <- do.call('rbind', ncm)
   ncm <- ncm[!is.na(ncm$SPLINED_VALUE), ]
@@ -148,7 +150,8 @@ mpspline_tidy <- function(obj = NULL, var_name = NULL, lam = 0.1,
   dcm <- lapply(splined, function(i) {
     data.frame("SID" = i$SID,
                "DEPTH" = names(i$est_dcm),
-               "SPLINED_VALUE" = as.vector(i$est_dcm))
+               "SPLINED_VALUE" = as.vector(i$est_dcm),
+               stringsAsFactors = FALSE)
   })
   dcm <- do.call('rbind', dcm)
   dcm$UD <- as.numeric(substr(dcm$DEPTH, 1, 3))
@@ -159,7 +162,8 @@ mpspline_tidy <- function(obj = NULL, var_name = NULL, lam = 0.1,
   tmse <- lapply(splined, function(i) {
     data.frame("SID" = i$SID,
                "ERROR_TYPE" = names(i$est_err),
-               "ERROR_VALUE" = as.vector(i$est_err))
+               "ERROR_VALUE" = as.vector(i$est_err),
+               stringsAsFactors = FALSE)
   })
   tmse <- do.call('rbind', tmse)
 
