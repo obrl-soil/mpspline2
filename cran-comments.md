@@ -1,6 +1,6 @@
 ## Release Summary
 
-First submission.
+Resubmission - fixed title case in DESCRIPTION title.
 
 ## Test environments
 
