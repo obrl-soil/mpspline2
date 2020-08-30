@@ -1,3 +1,7 @@
+# v. 0.1.4
+
+  * bugfix for `mpspline_tidy()`, now handles input profile ID column names correctly.
+
 # v. 0.1.3
 
   * output styles other than default shifted to wrapper functions
