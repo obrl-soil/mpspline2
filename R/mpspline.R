@@ -63,7 +63,6 @@ mpspline_datchk <- function(s = NULL, var_name = NULL) {
     s <- s[!is.na(s[[var_name]]), ]
   }
 
-
   # replace any missing surface value for upper depth
   if(is.na(s[[2]][1])) {
     message("Missing surface upper depth replaced with 0 in ", sid, '.')
@@ -78,7 +77,7 @@ mpspline_datchk <- function(s = NULL, var_name = NULL) {
     s[[3]][nrs] <- s[[2]][nrs] + 10
   }
 
-  # remove any horizons with -ve depths
+  # remove any horizons with -ve depths (e.g. organic horizons)
   n_negd <- length(which((s[[2]] < 0 | s[[3]] < 0)))
   if(n_negd > 0) {
     message(n_negd, " depth range(s) with negative depths removed from ", sid, '.')
@@ -90,6 +89,13 @@ mpspline_datchk <- function(s = NULL, var_name = NULL) {
   if(n_0th > 0) {
     message(n_0th, " depth range(s) with thickness of 0 removed from ", sid, '.')
     s <- s[!(s[[2]] == s[[3]]), ]
+  }
+
+  # remove any horizons where upper depth > lower depth
+  bkwrds <- length(which(s[[2]] > s[[3]]))
+  if(bkwrds > 0) {
+    message(bkwrds, " depth ranges removed from ", sid, " as upper depth exceeded lower depth.")
+    s <- s[!(s[[2]] > s[[3]]), ]
   }
 
   # sort by ud, ld
