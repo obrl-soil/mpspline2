@@ -1,3 +1,8 @@
+# v. 0.1.5
+
+  * `mpspline_datchk()` now removes 0-thickness horizons (where upper and lower depths are identical)
+  * `mpspline_datchk()` now returns messages about each edit made to the input data
+
 # v. 0.1.4
 
   * bugfix for `mpspline_tidy()`, now handles input profile ID column names correctly.
