@@ -59,7 +59,7 @@ mpspline_datchk <- function(s = NULL, var_name = NULL) {
   # remove any horizons where target value missing
   n_mv <- length(which(is.na(s[[var_name]])))
   if(n_mv > 0) {
-    message(n_mv, "depth range(s) with missing analytical data removed from ", sid, '.')
+    message(n_mv, " depth range(s) with missing analytical data removed from ", sid, '.')
     s <- s[!is.na(s[[var_name]]), ]
   }
 
@@ -81,14 +81,14 @@ mpspline_datchk <- function(s = NULL, var_name = NULL) {
   # remove any horizons with -ve depths
   n_negd <- length(which((s[[2]] < 0 | s[[3]] < 0)))
   if(n_negd > 0) {
-    message(n_negd, "depth range(s) with negative depths removed from ", sid, '.')
+    message(n_negd, " depth range(s) with negative depths removed from ", sid, '.')
     s <- s[!(s[[2]] < 0 | s[[3]] < 0), ]
   }
 
   # remove any horizons with 0-thickness depths (same UD and LD)
   n_0th <- length(which(s[[2]] == s[[3]]))
   if(n_0th > 0) {
-    message(n_0th, "depth range(s) with thickness of 0 removed from ", sid, '.')
+    message(n_0th, " depth range(s) with thickness of 0 removed from ", sid, '.')
     s <- s[!(s[[2]] == s[[3]]), ]
   }
 
