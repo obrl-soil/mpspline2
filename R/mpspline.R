@@ -57,10 +57,16 @@ mpspline_datchk <- function(s = NULL, var_name = NULL) {
   }
 
   # remove any horizons where target value missing
-  s <- s[!is.na(s[[var_name]]), ]
+  n_mv <- length(which(is.na(s[[var_name]])))
+  if(n_mv > 0) {
+    message(n_mv, "depth range(s) with missing analytical data removed from ", sid, '.')
+    s <- s[!is.na(s[[var_name]]), ]
+  }
 
-  # replace any missing surface value
+
+  # replace any missing surface value for upper depth
   if(is.na(s[[2]][1])) {
+    message("Missing surface upper depth replaced with 0 in ", sid, '.')
     s[[2]][1] <- 0
   }
 
@@ -68,20 +74,29 @@ mpspline_datchk <- function(s = NULL, var_name = NULL) {
   if(is.na(s[[3]][nrs])) {
     # NB more conservative than existing approach (stretches from last ud to
     # either 150 or 200cm), but ud + 10cm is more realistic
+    message("Missing deepest lower depth replaced with (deepest upper depth + 10) in ", sid, ".")
     s[[3]][nrs] <- s[[2]][nrs] + 10
   }
 
   # remove any horizons with -ve depths
-  s <- s[!(s[[2]] < 0 | s[[3]] < 0), ]
+  n_negd <- length(which((s[[2]] < 0 | s[[3]] < 0)))
+  if(n_negd > 0) {
+    message(n_negd, "depth range(s) with negative depths removed from ", sid, '.')
+    s <- s[!(s[[2]] < 0 | s[[3]] < 0), ]
+  }
 
   # remove any horizons with 0-thickness depths (same UD and LD)
-  s <- s[!(s[[2]] == s[[3]]), ]
+  n_0th <- length(which(s[[2]] == s[[3]]))
+  if(n_0th > 0) {
+    message(n_0th, "depth range(s) with thickness of 0 removed from ", sid, '.')
+    s <- s[!(s[[2]] == s[[3]]), ]
+  }
 
   # sort by ud, ld
   s <- s[order(s[[2]], s[[3]]), ]
   rownames(s) <- NULL
 
-  # Drop sites with overlapping data depth ranges
+  # Drop sites with overlapping data depth ranges (user should fix)
   if(nrs > 1) {
     if(any(s[[2]][2:nrs] < s[[3]][1:(nrs - 1)], na.rm = TRUE)) {
       message("Overlapping depth ranges detected in site ", sid, '.')
