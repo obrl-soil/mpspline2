@@ -74,6 +74,9 @@ mpspline_datchk <- function(s = NULL, var_name = NULL) {
   # remove any horizons with -ve depths
   s <- s[!(s[[2]] < 0 | s[[3]] < 0), ]
 
+  # remove any horizons with 0-thickness depths (same UD and LD)
+  s <- s[!(s[[2]] == s[[3]]), ]
+
   # sort by ud, ld
   s <- s[order(s[[2]], s[[3]]), ]
   rownames(s) <- NULL
