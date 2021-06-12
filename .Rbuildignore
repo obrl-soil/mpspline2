@@ -1,6 +1,6 @@
 ^codecov\.yml$
-^\.travis\.yml$
 ^README\.Rmd$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^cran-comments.md
+^\.github$

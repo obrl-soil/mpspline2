@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-[![Travis build status](https://travis-ci.com/obrl-soil/mpspline2.svg?branch=master)](https://travis-ci.com/obrl-soil/mpspline2)
+[![R-CMD-check](https://github.com/obrl-soil/mpspline2/workflows/R-CMD-check/badge.svg)](https://github.com/obrl-soil/mpspline2/actions)
 [![Coverage status](https://codecov.io/gh/obrl-soil/mpspline2/branch/master/graph/badge.svg)](https://codecov.io/github/obrl-soil/mpspline2?branch=master)
 [![CRAN](https://www.r-pkg.org/badges/version/mpspline2)](https://cran.r-project.org/package=mpspline2)
 [![Downloads](https://cranlogs.r-pkg.org/badges/grand-total/mpspline2)](https://www.r-pkg.org/pkg/mpspline2)

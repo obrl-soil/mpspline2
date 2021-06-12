@@ -1,8 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-[![Travis build
-status](https://travis-ci.com/obrl-soil/mpspline2.svg?branch=master)](https://travis-ci.com/obrl-soil/mpspline2)
+[![R-CMD-check](https://github.com/obrl-soil/mpspline2/workflows/R-CMD-check/badge.svg)](https://github.com/obrl-soil/mpspline2/actions)
 [![Coverage
 status](https://codecov.io/gh/obrl-soil/mpspline2/branch/master/graph/badge.svg)](https://codecov.io/github/obrl-soil/mpspline2?branch=master)
 [![CRAN](https://www.r-pkg.org/badges/version/mpspline2)](https://cran.r-project.org/package=mpspline2)
@@ -63,4 +62,4 @@ benefit from the discussion, and more people are available to help you.
 You’re welcome to ping me in a comment or on twitter (@obrl\_soil) to
 get my attention.
 
------
+------------------------------------------------------------------------
