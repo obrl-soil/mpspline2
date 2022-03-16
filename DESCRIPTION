@@ -8,7 +8,8 @@ Authors@R: c(person("Lauren", "O'Brien", email = "obrlsoilau@gmail.com", role = 
 			 person("Tomislav", "Hengl",  email = "tom.hengl@wur.nl",  role = c('ctb'), comment = c(ORCID = "0000-0002-9921-5129")),
 			 person("Tom", "Bishop",  email = "t.bishop@usyd.edu.au",  role = c('ctb')),
 			 person("David", "Rossiter",  email = "david.rossiter@wur.nl",  role = c('ctb')),
-			 person("Dylan", "Beaudette",  email = "dylan.beaudette@ca.usda.gov",  role = c('ctb')))
+			 person("Dylan", "Beaudette",  email = "dylan.beaudette@usda.gov",  role = c('ctb')),
+			 person("Andrew", "Brown",  email = "andrew.g.brown@usda.gov",  role = c('ctb')))
 Description: A low-dependency implementation of GSIF::mpspline() <https://r-forge.r-project.org/scm/viewvc.php/pkg/R/mpspline.R?view=markup&revision=240&root=gsif>,
   which applies a mass-preserving spline to soil attributes. Splining soil data 
   is a safe way to make continuous down-profile estimates of attributes measured

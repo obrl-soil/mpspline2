@@ -61,6 +61,7 @@ mpspline_datchk <- function(s = NULL, var_name = NULL) {
   if(n_mv > 0) {
     message(n_mv, " depth range(s) with missing analytical data removed from ", sid, '.')
     s <- s[!is.na(s[[var_name]]), ]
+    nrs <- nrs - n_mv
   }
 
   # replace any missing surface value for upper depth
