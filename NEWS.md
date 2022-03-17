@@ -1,4 +1,9 @@
-# v. 0.1.5
+# v. 0.1.6
+
+  * `mpspline_datchk()` bugfix per PR 2
+
+
+# v. 0.1.5 [CRAN]
 
   * `mpspline_datchk()` now removes 0-thickness horizons (where upper and lower depths are identical)
   * `mpspline2_datchk()` now removes horizons where upper depth is greater than lower depth
