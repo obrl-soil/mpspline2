@@ -42,11 +42,10 @@ A four-item list containing data frames of predicted values over the
   RMSE and IQR-scaled RMSE values.
 }
 \description{
-This function implements the mass-preserving spline method of
-\href{http://dx.doi.org/10.1016/S0016-7061(99)00003-8}{Bishop et al
-(1999)} for interpolating between measured soil attributes down a soil
-profile, across multiple sites' worth of data. It returns an output object
-with tidy data formatting.
+This function implements the mass-preserving spline method of Bishop \emph{et
+al} (1999) (\doi{10.1016/S0016-7061(99)00003-8}) for interpolating between
+measured soil attributes down a soil profile, across multiple sites' worth of
+data. It returns an output object with tidy data formatting.
 }
 \examples{
 dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),

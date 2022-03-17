@@ -43,10 +43,10 @@ A nested list of data for each input site. List elements are: Site
   values over \code{d} (output) intervals, and root mean squared error.
 }
 \description{
-This function implements the mass-preserving spline method of
-\href{http://dx.doi.org/10.1016/S0016-7061(99)00003-8}{Bishop et al
-(1999)} for interpolating between measured soil attributes down a soil
-profile, across multiple sites' worth of data.
+This function implements the mass-preserving spline method of Bishop \emph{et
+al} (1999) (\doi{10.1016/S0016-7061(99)00003-8}) for interpolating between
+measured soil attributes down a soil profile, across multiple sites' worth of
+data.
 }
 \examples{
 dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),

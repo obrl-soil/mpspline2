@@ -319,10 +319,9 @@ mpspline_rmse1 <- function(s = NULL, p = NULL, var_name = NULL) {
 
 #' Spline discrete soils data - single site
 #'
-#' This function implements the mass-preserving spline method of
-#' \href{http://dx.doi.org/10.1016/S0016-7061(99)00003-8}{Bishop et al (1999)}
-#' for interpolating between measured soil attributes down a single soil
-#' profile.
+#' This function implements the mass-preserving spline method of Bishop \emph{et
+#' al} (1999) (\doi{10.1016/S0016-7061(99)00003-8}) for interpolating between
+#' measured soil attributes down a single soil profile.
 #' @param site data frame containing data for a single soil profile.
 #'   Column 1 must contain site identifiers. Columns 2 and 3 must contain upper
 #'   and lower sample depths, respectively, measured in centimeters. Subsequent
@@ -408,10 +407,10 @@ mpspline_one <- function(site = NULL, var_name = NULL, lam = 0.1,
 
 #' Spline discrete soils data - multiple sites
 #'
-#' This function implements the mass-preserving spline method of
-#' \href{http://dx.doi.org/10.1016/S0016-7061(99)00003-8}{Bishop et al
-#' (1999)} for interpolating between measured soil attributes down a soil
-#' profile, across multiple sites' worth of data.
+#' This function implements the mass-preserving spline method of Bishop \emph{et
+#' al} (1999) (\doi{10.1016/S0016-7061(99)00003-8}) for interpolating between
+#' measured soil attributes down a soil profile, across multiple sites' worth of
+#' data.
 #' @param obj data.frame or matrix. Column 1 must contain site
 #'   identifiers. Columns 2 and 3 must contain upper and lower sample depths,
 #'   respectively. Subsequent columns will contain measured values for those
