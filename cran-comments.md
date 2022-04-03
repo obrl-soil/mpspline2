@@ -1,11 +1,14 @@
 ## Release Summary
 
-Resubmission - fixed title case in DESCRIPTION title.
+Bugfix release, plus checks against newer R versions
 
 ## Test environments
 
-  * Local: Windows 10, R 3.6.3, R 4.0.1, and r-devel r78810 (2020-07-11)
-  * Local: Ubuntu 18.04 bionic, R 4.0.2 via WSL-2
+  * Local: 
+    * Windows 11, R 4.1.3 
+    * Ubuntu 20.04, R 4.1.3 via WSL
+  * Github Actions via usethis::use_github_action_check_standard()
+  * rhub::check_for_cran(platforms = c('solaris-x86-patched-ods', 'solaris-x86-patched'))
 
 ## R CMD Check Results
 

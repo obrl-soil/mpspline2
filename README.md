@@ -59,7 +59,7 @@ spl_dat$est_dcm
 If you get stuck using this package, please post a question on [Stack
 Overflow](https://stackoverflow.com/). This means that others can
 benefit from the discussion, and more people are available to help you.
-You’re welcome to ping me in a comment or on twitter (@obrl\_soil) to
-get my attention.
+You’re welcome to ping me in a comment or on twitter (@obrl_soil) to get
+my attention.
 
 ------------------------------------------------------------------------
