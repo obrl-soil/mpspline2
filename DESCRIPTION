@@ -16,7 +16,6 @@ Description: A low-dependency implementation of GSIF::mpspline() <https://r-forg
   over discrete, often discontinuous depth intervals.
 License: GPL
 Encoding: UTF-8
-LazyData: true
 Imports:
     stats
 Suggests:
