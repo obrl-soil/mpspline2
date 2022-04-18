@@ -140,8 +140,8 @@ mpspline_tidy <- function(obj = NULL, var_name = NULL, lam = 0.1,
 
   ncm <- lapply(splined, function(i) {
     d <- data.frame("SID" = i[[1]],
-                    "UD" = as.numeric(seq(200)) - 1,
-                    "LD" = seq(200),
+                    "UD" = as.numeric(seq(max(d, na.rm = TRUE))) - 1,
+                    "LD" = seq(max(d, na.rm = TRUE)),
                     "SPLINED_VALUE" = as.vector(i$est_1cm),
                     stringsAsFactors = FALSE)
     names(d)[1] <- names(i[1])[1]

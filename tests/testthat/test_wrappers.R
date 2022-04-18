@@ -47,7 +47,11 @@ test_that("mpspline_tidy",
              m2 <-  mpspline_tidy(s1, lam = 0.1,
                                      d = c(0, 5, 15, 30, 60, 100, 200),
                                      vhigh = 14, vlow = 0),
-             expect_identical(m1, m2)
+             expect_identical(m1, m2),
+             #test custom depths
+             m3 <-  mpspline_tidy(s1, var_name = 'VAL', lam = 0.1,
+                                  d = c(0, 30, 60),vhigh = 14, vlow = 0),
+             expect_lte(max(m3[[2]][[3]]), 60)
 
           )
 )
