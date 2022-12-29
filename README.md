@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-[![R-CMD-check](https://github.com/obrl-soil/mpspline2/workflows/R-CMD-check/badge.svg)](https://github.com/obrl-soil/mpspline2/actions)
+[![R-CMD-check](https://github.com/obrl-soil/mpspline2/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/obrl-soil/mpspline2/actions/workflows/R-CMD-check.yaml)
 [![Coverage
 status](https://codecov.io/gh/obrl-soil/mpspline2/branch/master/graph/badge.svg)](https://codecov.io/github/obrl-soil/mpspline2?branch=master)
 [![CRAN](https://www.r-pkg.org/badges/version/mpspline2)](https://cran.r-project.org/package=mpspline2)
@@ -59,7 +59,7 @@ spl_dat$est_dcm
 If you get stuck using this package, please post a question on [Stack
 Overflow](https://stackoverflow.com/). This means that others can
 benefit from the discussion, and more people are available to help you.
-You’re welcome to ping me in a comment or on Mastodon ([@obrl_soil@mastodon.social](https://mastodon.social/@obrl_soil)) to get
+You’re welcome to ping me in a comment or on twitter (@obrl_soil) to get
 my attention.
 
 ------------------------------------------------------------------------
