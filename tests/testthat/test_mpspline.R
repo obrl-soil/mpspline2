@@ -298,7 +298,16 @@ test_that("mpspline_one returns correctly",
             m4 <-  mpspline_one(s3, d = c(0, 5, 15, 30, 60, 100, 200),
                                 vhigh = 14, vlow = 0),
             expect_identical(m1[[3]], m4[[3]]),
-            expect_is(m4[[1]], 'character')
+            expect_is(m4[[1]], 'character'),
+            # single row input
+            s4 <- s1[1, ],
+            m5 <- mpspline_one(s4, var_name = 'VAL', lam = 0.1,
+                               d = c(0, 5, 15, 30, 60, 100, 200),
+                               vhigh = 14, vlow = 0),
+            expect_message(mpspline_one(s4, var_name = 'VAL', lam = 0.1,
+                                        d = c(0, 5, 15, 30, 60, 100, 200),
+                                        vhigh = 14, vlow = 0))
+
           ))
 
 test_that("mpspline works with default output",

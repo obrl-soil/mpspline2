@@ -1,3 +1,7 @@
+# v. 0.1.8
+
+  * bugfix for column labelling
+
 # v. 0.1.7
 
   * `mpspline_tidy()` bugfix - 1 cm output depth intervals corrected to start from 0 and end at max prediction depth specified.

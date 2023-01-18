@@ -383,8 +383,8 @@ mpspline_one <- function(site = NULL, var_name = NULL, lam = 0.1,
   }
 
   if(all(is.na(p))) { icm <- s[[var_name]][1]
-    names(icm) <- paste0(sprintf('%03d', s[[2]][1]), '_',
-                         sprintf('%03d', s[[3]][1]), '_cm')
+    names(icm) <- paste0(sprintf('%03d', as.integer(s[[2]][1])), '_',
+                         sprintf('%03d', as.integer(s[[3]][1])), '_cm')
     }
 
   # arrange outputs
