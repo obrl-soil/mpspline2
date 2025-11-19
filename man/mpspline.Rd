@@ -19,7 +19,7 @@ identifiers. Columns 2 and 3 must contain upper and lower sample depths,
 respectively. Subsequent columns will contain measured values for those
 depths.}
 
-\item{var_name}{length-1 character or length-1 integer denoting the column in
+\item{var_name}{character or integer vector denoting the column(s) in
 \code{obj} in which target data is stored. If not supplied, the fourth
 column of the input object is assumed to contain the target data.}
 
@@ -49,10 +49,21 @@ measured soil attributes down a soil profile, across multiple sites' worth of
 data.
 }
 \examples{
+# single variable
 dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
                    "UD" = c( 0, 20, 40, 60,   0,  15,  45,  80),
                    "LD" = c(10, 30, 50, 70,   5,  30,  60, 100),
                   "VAL" = c( 6,  4,  3, 10, 0.1, 0.9, 2.5,   6),
                    stringsAsFactors = FALSE)
 m1 <- mpspline(obj = dat, var_name = 'VAL')
+
+# multiple variables
+dat_multi <- data.frame( "SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
+                          "UD" = c( 0, 20, 40, 60,   0,  15,  45,  80),
+                          "LD" = c(10, 30, 50, 70,   5,  30,  60, 100),
+                        "VAL1" = c( 6,  4,  3, 10, 0.1, 0.9, 2.5,   6),
+                        "VAL2" = c( 5,  3,  2,  9, 0.2, 1.0, 2.0,   5),
+                        stringsAsFactors = FALSE)
+m_multi <- mpspline(obj = dat_multi, var_name = c('VAL1', 'VAL2'))
+# access results: m_multi[['VAL1']][['1']]
 }

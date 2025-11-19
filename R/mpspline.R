@@ -35,11 +35,18 @@ mpspline_conv.data.frame <- function(obj = NULL) {
   obj # >.>
 }
 
+#' Format depth interval names
+#' @keywords internal
+#' @noRd
+.format_depth_interval_names <- function(upper_depths, lower_depths) {
+  paste0(sprintf('%03d', upper_depths), '_', sprintf('%03d', lower_depths), '_cm')
+}
+
 #' pre-spline data checks
 #'
 #' Runs a few data quality checks and makes some repairs where possible.
 #' @param s data frame, input data for a single soil profile.
-#' @param var_name length-1 character or length-1 integer denoting the column in
+#' @param var_name character or integer vector denoting the column(s) in
 #'   \code{site} in which target data is stored. If not supplied, the fourth
 #'   column of the input object is assumed to contain the target data.
 #' @return If data passes checks it is returned unchanged. Sites with no data to
@@ -118,7 +125,7 @@ mpspline_datchk <- function(s = NULL, var_name = NULL) {
 #' Estimate key parameters for building a mass-preserving spline across a single
 #' soil profile
 #' @param s data.frame containing a single profile's worth of soil info
-#' @param var_name length-1 character or length-1 integer denoting the column in
+#' @param var_name character or integer vector denoting the column(s) in
 #'   \code{site} in which target data is stored. If not supplied, the fourth
 #'   column of the input object is assumed to contain the target data.
 #' @param lam number; smoothing parameter for spline. Defaults to 0.1.
@@ -175,9 +182,7 @@ mpspline_est1 <- function(s = NULL, var_name = NULL, lam = NULL) {
   s_bar <- solve(Z, s[[var_name]])
 
   # name s_bar with input depth ranges
-  names(s_bar) <- mapply(function(u, l) {
-    paste0(sprintf('%03d', u), '_', sprintf('%03d', l), '_cm')
-  }, u = as.integer(s[[2]]), l = as.integer(s[[3]]))
+  names(s_bar) <- .format_depth_interval_names(as.integer(s[[2]]), as.integer(s[[3]]))
 
   # calculate the fitted value at the knots (middle of each input range)
   b     <- as.vector(6 * R_inv %*% Q %*% s_bar)
@@ -276,7 +281,7 @@ mpspline_fit1 <- function(s = NULL, p = NULL, var_name = NULL,
   est_1cm[which(est_1cm < vlow)]  <- vlow
 
   # pad vec to max(d)
-  if(nj < md) {
+  if (nj < md) {
     est_1cm <- rep(est_1cm, length.out = md)
     est_1cm[(nj + 1):md] <- NA_real_
   }
@@ -297,7 +302,7 @@ mpspline_fit1 <- function(s = NULL, p = NULL, var_name = NULL,
 #' @param s data.frame; data for one site
 #' @param p list; estimated spline parameters for one site from
 #'   \code{\link[mpspline2:mpspline_est1]{mpspline_est1}}
-#' @param var_name length-1 character or length-1 integer denoting the column in
+#' @param var_name character or integer vector denoting the column(s) in
 #'   \code{site} in which target data is stored. If not supplied, the fourth
 #'   column of the input object is assumed to contain the target data.
 #' @return length-2 named numeric - RMSE and RMSE scaled against input data's
@@ -326,7 +331,7 @@ mpspline_rmse1 <- function(s = NULL, p = NULL, var_name = NULL) {
 #'   Column 1 must contain site identifiers. Columns 2 and 3 must contain upper
 #'   and lower sample depths, respectively, measured in centimeters. Subsequent
 #'   columns will contain measured values for those depths.
-#' @param var_name length-1 character or length-1 integer denoting the column in
+#' @param var_name character or integer vector denoting the column(s) in
 #'   \code{site} in which target data is stored. If not supplied, the fourth
 #'   column of the input object is assumed to contain the target data.
 #' @param lam number; smoothing parameter for spline. Defaults to 0.1.
@@ -399,9 +404,7 @@ mpspline_one <- function(site = NULL, var_name = NULL, lam = 0.1,
   # preserve input SID column name
   names(splined)[1] <- names(site)[1]
   # name est_dcm like est_ins:
-  names(splined[['est_dcm']]) <- mapply(function(u, l) {
-    paste0(sprintf('%03d', u), '_', sprintf('%03d', l), '_cm')
-    }, u = d[1:(length(d) - 1)], l = d[2:length(d)])
+  names(splined[['est_dcm']]) <- .format_depth_interval_names(d[1:(length(d) - 1)], d[2:length(d)])
   splined
 }
 
@@ -415,7 +418,7 @@ mpspline_one <- function(site = NULL, var_name = NULL, lam = 0.1,
 #'   identifiers. Columns 2 and 3 must contain upper and lower sample depths,
 #'   respectively. Subsequent columns will contain measured values for those
 #'   depths.
-#' @param var_name length-1 character or length-1 integer denoting the column in
+#' @param var_name character or integer vector denoting the column(s) in
 #'   \code{obj} in which target data is stored. If not supplied, the fourth
 #'   column of the input object is assumed to contain the target data.
 #' @param lam number; smoothing parameter for spline. Defaults to 0.1.
@@ -432,12 +435,23 @@ mpspline_one <- function(site = NULL, var_name = NULL, lam = 0.1,
 #'   values for each cm down the profile to \code{max(d)}, vector of predicted
 #'   values over \code{d} (output) intervals, and root mean squared error.
 #' @examples
+#' # single variable
 #' dat <- data.frame("SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
 #'                    "UD" = c( 0, 20, 40, 60,   0,  15,  45,  80),
 #'                    "LD" = c(10, 30, 50, 70,   5,  30,  60, 100),
 #'                   "VAL" = c( 6,  4,  3, 10, 0.1, 0.9, 2.5,   6),
 #'                    stringsAsFactors = FALSE)
 #' m1 <- mpspline(obj = dat, var_name = 'VAL')
+#'
+#' # multiple variables
+#' dat_multi <- data.frame( "SID" = c( 1,  1,  1,  1,   2,   2,   2,   2),
+#'                           "UD" = c( 0, 20, 40, 60,   0,  15,  45,  80),
+#'                           "LD" = c(10, 30, 50, 70,   5,  30,  60, 100),
+#'                         "VAL1" = c( 6,  4,  3, 10, 0.1, 0.9, 2.5,   6),
+#'                         "VAL2" = c( 5,  3,  2,  9, 0.2, 1.0, 2.0,   5),
+#'                         stringsAsFactors = FALSE)
+#' m_multi <- mpspline(obj = dat_multi, var_name = c('VAL1', 'VAL2'))
+#' # access results: m_multi[['VAL1']][['1']]
 #' @export
 #'
 mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
@@ -452,11 +466,24 @@ mpspline <- function(obj = NULL, var_name = NULL, lam = 0.1,
     var_name <- names(obj)[4]
   }
 
+  is_multi_var <- is.character(var_name) && length(var_name) > 1
   sites <- split(obj, as.factor(obj[[1]]))
 
+  if (is_multi_var) {
+    multi_splined <- list()
+    for (v_name in var_name) {
+      if (all(is.na(obj[[v_name]]))) {
+        message("All values for variable '", v_name, "' are NA. Skipping splining for this variable.")
+        multi_splined[[v_name]] <- NA
+        next
+      }
+      splined_for_var <- lapply(sites, mpspline_one, var_name = v_name, lam = lam,
+                                d = d, vlow = vlow, vhigh = vhigh)
+      multi_splined[[v_name]] <- splined_for_var[!is.na(splined_for_var)]
+    }
+    return(multi_splined)
+  }
   splined <- lapply(sites, mpspline_one, var_name = var_name, lam = lam,
                     d = d, vlow = vlow, vhigh = vhigh)
-
-  splined[which(!is.na(splined))]
+  splined[!is.na(splined)]
 }
-

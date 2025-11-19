@@ -19,7 +19,7 @@ Column 1 must contain site identifiers. Columns 2 and 3 must contain upper
 and lower sample depths, respectively, measured in centimeters. Subsequent
 columns will contain measured values for those depths.}
 
-\item{var_name}{length-1 character or length-1 integer denoting the column in
+\item{var_name}{character or integer vector denoting the column(s) in
 \code{site} in which target data is stored. If not supplied, the fourth
 column of the input object is assumed to contain the target data.}
 
