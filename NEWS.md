@@ -1,3 +1,7 @@
+# v. 0.1.9
+
+  * Add ability to spline multiple variables at once, resolving #10 (thanks to @brownag for this update)
+
 # v. 0.1.8
 
   * bugfix for column labelling
