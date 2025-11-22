@@ -1,15 +1,15 @@
 Package: mpspline2
 Type: Package
 Title: Mass-Preserving Spline Functions for Soil Data
-Version: 0.1.8
-Date: 2023-01-18
+Version: 0.1.9
+Date: 2025-11-20
 Authors@R: c(person("Lauren", "O'Brien", email = "obrlsoilau@gmail.com", role = c('aut', 'cre'), comment = c(ORCID = "0000-0002-7336-2171")),
              person("Brendan", "Malone",  email = "brendan.malone@csiro.au",  role = c('ctb'), comment = c(ORCID = "0000-0002-0473-8518")),
 			 person("Tomislav", "Hengl",  email = "tom.hengl@wur.nl",  role = c('ctb'), comment = c(ORCID = "0000-0002-9921-5129")),
 			 person("Tom", "Bishop",  email = "t.bishop@usyd.edu.au",  role = c('ctb')),
 			 person("David", "Rossiter",  email = "david.rossiter@wur.nl",  role = c('ctb')),
 			 person("Dylan", "Beaudette",  email = "dylan.beaudette@usda.gov",  role = c('ctb')),
-			 person("Andrew", "Brown",  email = "andrew.g.brown@usda.gov",  role = c('ctb')))
+			 person("Andrew", "Brown",  email = "andrew.g.brown@usda.gov",  role = c('ctb'), comment = c(ORCID="0000-0002-4565-533X")))
 Description: A low-dependency implementation of GSIF::mpspline() <https://r-forge.r-project.org/scm/viewvc.php/pkg/R/mpspline.R?view=markup&revision=240&root=gsif>,
   which applies a mass-preserving spline to soil attributes. Splining soil data 
   is a safe way to make continuous down-profile estimates of attributes measured
@@ -21,5 +21,5 @@ Imports:
 Suggests:
     testthat,
     covr
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.3
 URL: https://github.com/obrl-soil/mpspline2

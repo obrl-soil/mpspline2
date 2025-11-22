@@ -9,7 +9,7 @@ mpspline_est1(s = NULL, var_name = NULL, lam = NULL)
 \arguments{
 \item{s}{data.frame containing a single profile's worth of soil info}
 
-\item{var_name}{length-1 character or length-1 integer denoting the column in
+\item{var_name}{character or integer vector denoting the column(s) in
 \code{site} in which target data is stored. If not supplied, the fourth
 column of the input object is assumed to contain the target data.}
 
