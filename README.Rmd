@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 ```
 
 [![R-CMD-check](https://github.com/obrl-soil/mpspline2/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/obrl-soil/mpspline2/actions/workflows/R-CMD-check.yaml)
-[![Coverage status](https://codecov.io/gh/obrl-soil/mpspline2/branch/master/graph/badge.svg)](https://codecov.io/github/obrl-soil/mpspline2?branch=master)
+[![Coverage status](https://codecov.io/github/obrl-soil/mpspline2/branch/master/graph/badge.svg)](https://app.codecov.io/github/obrl-soil/mpspline2?branch=master)
 [![CRAN](https://www.r-pkg.org/badges/version/mpspline2)](https://cran.r-project.org/package=mpspline2)
 [![Downloads](https://cranlogs.r-pkg.org/badges/grand-total/mpspline2)](https://www.r-pkg.org/pkg/mpspline2)
 
